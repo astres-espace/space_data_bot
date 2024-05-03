@@ -1,8 +1,8 @@
 import typing
 import os
 import json
-import webbrowser
 import discord
+import asyncio
 import requests
 import tempfile
 from pathlib import Path
@@ -51,8 +51,8 @@ PUBLIC_ENDPOINTS = {
     ORGNAMEPUBLIC: "Informations basiques sur les entreprises.",
     ORGNAMEGPSPUBLIC: "Localisations GPS des entreprises.",
     WEAPONSPUBLIC: "Informations basiques sur toutes les armes du spatial.",
-    TOKEN: "Crée un token pour prouver l'authentification d'un utilisateur.",
-    TOKEN_REFRESH: "A compléter.",
+    TOKEN: "Allows the user to connect to Recon.Space.",
+    TOKEN_REFRESH: "Actualise les autorisations d'accès à Recon.Space.",
     RECORDS: "Le nombre d'éléments que chaque catégorie contient.",
     TAG: "L'identifiant de chaque catégorie."
 }
@@ -131,9 +131,9 @@ Endpoints commands accessible for everyone.
 
 @client.tree.command()
 @app_commands.describe(email="your email", password="your password")
-async def token(interaction: discord.Interaction,
+async def login(interaction: discord.Interaction,
                 email: str, password: str) -> None:
-    """Creates a token to prove user authentication"""
+    """Allows the user to connect to Recon.Space."""
 
     data = {"email": email, "password": password}
     url = f"https://api.recon.space/myapi/{TOKEN}/#post-object-form"
@@ -146,15 +146,20 @@ async def token(interaction: discord.Interaction,
             json.dump(response.json(), json_file)
 
         await interaction.response.send_message(
-            "Tokens created with success", ephemeral=True)
+            "You are successfully logged in!", ephemeral=True)
     else:
         await interaction.response.send_message(
-            "Error", ephemeral=True)
+            """
+            Error!
+            Create an account first or check that you haven't made a
+            mistake entering your login details.
+            """,
+            ephemeral=True)
 
 
 @client.tree.command()
 @app_commands.describe(refresh="refresh type JSON web token")
-async def token_refresh(interaction: discord.Interaction, refresh: str
+async def login_refresh(interaction: discord.Interaction, refresh: str
                         ) -> None:
     """Takes a refresh type JSON web token and returns an access type JSON web
 token if the refresh token is valid."""
@@ -162,50 +167,53 @@ token if the refresh token is valid."""
     # WIP
 
 
-async def orgname_autocomplete(interaction: discord.Interaction,
-                               current: str
-                               ) -> typing.List[app_commands.Choice[str]]:
-    """Retrieves the name of each organization to create a filter.
-    Problem: it takes a long time to load, and there are too many companies
-    for Discord!
-
-    Args:
-        interaction (discord.Interaction): Discord context
-        current (str): Current typed word
-
-    Returns:
-        typing.List[app_commands.Choice[str]]: Companies names
-    """
-    data = []
-    response = requests.get(f"{API_ROOT}/{ORGNAMEPUBLIC}")
-    if response.status_code == 200:
-        orgs = response.json().get("results", [])
-
-        for org in orgs:
-            org_name = org.get("organisationname", "")
-
-            if current.lower() in org_name.lower():
-                data.append(app_commands.Choice(name=org_name, value=org_name))
-
-    return data
-
-
 @client.tree.command()
-@app_commands.autocomplete(company_name=orgname_autocomplete)
 @app_commands.describe(company_name="The name of the company")
 async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
     """Company information"""
 
-    if not company_name:
-        await custom_message(interaction, ORGNAMEPUBLIC)
+    if company_name:
+        url = f"{API_ROOT}/{ORGNAMEPUBLIC}/?search={company_name}"
+        result = requests.get(url)
+
+        if result.status_code == 200:
+            orgs = result.json().get("results", [])
+            if len(orgs) > 5:
+                message = "There are more than 5 companies that contain \
+                this filter!\nTry refining your search by entering one of \
+                these names:"
+                for org in orgs:
+                    message += f"{org.get('organisationname', '')}\n"
+
+                await interaction.response.send_message(crop(message),
+                                                        ephemeral=True)
+            else:
+                await interaction.response.send_message(crop(orgs),
+                                                        ephemeral=True)
+        else:
+            await interaction.response.send_message(
+                f"Error {result.status_code}")
 
     else:
-        url = f"{API_ROOT}/{ORGNAMEPUBLIC}/?search={company_name}"
-        request_response = requests.get(url)
-        await interaction.response.send_message(
-            build_req_message(f"**{company_name}**\n{url}", request_response),
-            ephemeral=True)
+        message = f'''
+There's a lot of data!
+Here's a sample of what you can get with this command:
+```
+"id": 3408,
+"organisationname": "NASA",
+"orgtype": "For Profit",
+"description": "NASA is responsible for the civilian space program,
+    as well as aeronautics and aerospace research.",
+"tags": [
+    "Agency",
+    "Misc"
+]
+```
+**Click on this link to see all the companies:** {API_ROOT}/{ORGNAMEPUBLIC}
+Try specifying the company's name you're looking for by retyping the command.
+'''
+        await interaction.response.send_message(message, ephemeral=True)
 
 
 @client.tree.command()
@@ -332,7 +340,6 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
     else:
         await interaction.response.send_message(
             f"See your results here : {url}", ephemeral=True)
-        webbrowser.open(url)
 
 
 def build_req_message(title: str, response: requests.models.Response) -> str:
@@ -386,6 +393,13 @@ def get_token() -> str:
             token_access = refresh_token(token_refresh)
 
         return token_access
+
+
+def crop(message: str):
+    if len(message) > 1990:
+        message = f"{message[:1990]}\n..."
+
+    return message
 
 
 if __name__ == "__main__":
