@@ -1,72 +1,62 @@
+"""
+MIT License
+
+Copyright (c) 2024 Alliance Stratégique des Étudiants du Spatial (ASTRES)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import typing
 import os
 import json
 import discord
-import asyncio
 import requests
 import tempfile
 from pathlib import Path
 from discord import app_commands
 
-"""
-The first part of the file defines the important variables.
-The bot and api IDs are defined.
-"""
+from space_data_bot import envs
 
-# DISCORD ENV
-# Replace BOT_TOKEN, GUILD_ID and CHANNEL_ID with your own information
-BOT_TOKEN = os.getenv("DISCORD_BOT")
+
 GUILD_ID = discord.Object(id=os.getenv("ASTRES_ID"))
-CHANNEL_ID = os.getenv("SPACEDATA_CHANNEL_ID")
-
-# DESTINATION ENV
-# Do not edit these constants
-HOME_URL = "https://recon.space"
-API_ROOT = "https://api.recon.space/myapi"
-TOKEN_TEMP_FILE_STEM = "space_data_tokens.json"
-
-# PUBLIC ENDPOINTS
-ORGNAMEPUBLIC = "orgnamepublic"
-ORGNAMEGPSPUBLIC = "orgnamegpspublic"  # filter
-WEAPONSPUBLIC = "weaponspublic"
-TOKEN = "token"
-TOKEN_REFRESH = "token/refresh"
-RECORDS = "records"
-TAG = "tag"
-
-# CONNECTED ENDPOINTS
-ACCOUNT = "myaccount"
-ORGNAME = "orgname"  # filter by name, city, tag
-ORGNAMEGPS = "orgnamegps"  # filter
-DOMAIN = "domain"
-SUBDOMAIN = "subdomain"
-IP = "ip"
-SATELLITE = "satellite"  # filter
-TAGLAWS = "taglaws"
-WEAPONS = "weapons"
-FINANCIAL = "financial"
 
 # HELP DOCUMENTATION
 PUBLIC_ENDPOINTS = {
-    ORGNAMEPUBLIC: "Informations basiques sur les entreprises.",
-    ORGNAMEGPSPUBLIC: "Localisations GPS des entreprises.",
-    WEAPONSPUBLIC: "Informations basiques sur toutes les armes du spatial.",
-    TOKEN: "Allows the user to connect to Recon.Space.",
-    TOKEN_REFRESH: "Actualise les autorisations d'accès à Recon.Space.",
-    RECORDS: "Le nombre d'éléments que chaque catégorie contient.",
-    TAG: "L'identifiant de chaque catégorie."
+    envs.ORGNAMEPUBLIC: "Informations basiques sur les entreprises.",
+    envs.ORGNAMEGPSPUBLIC: "Localisations GPS des entreprises.",
+    envs.WEAPONSPUBLIC: "Informations basiques sur toutes les armes du spatial.",
+    envs.TOKEN: "Allows the user to connect to Recon.Space.",
+    envs.TOKEN_REFRESH: "Actualise les autorisations d'accès à Recon.Space.",
+    envs.RECORDS: "Le nombre d'éléments que chaque catégorie contient.",
+    envs.TAG: "L'identifiant de chaque catégorie."
 }
 PRIVATE_ENDPOINTS = {
-    ACCOUNT: "...",
-    ORGNAME: "...",
-    ORGNAMEGPS: "...",
-    DOMAIN: "...",
-    SUBDOMAIN: "...",
-    IP: "...",
-    SATELLITE: "...",
-    TAGLAWS: "...",
-    WEAPONS: "...",
-    FINANCIAL: "..."
+    envs.ACCOUNT: "...",
+    envs.ORGNAME: "...",
+    envs.ORGNAMEGPS: "...",
+    envs.DOMAIN: "...",
+    envs.SUBDOMAIN: "...",
+    envs.IP: "...",
+    envs.SATELLITE: "...",
+    envs.TAGLAWS: "...",
+    envs.WEAPONS: "...",
+    envs.FINANCIAL: "..."
 }
 
 
@@ -136,11 +126,11 @@ async def login(interaction: discord.Interaction,
     """Allows the user to connect to Recon.Space."""
 
     data = {"email": email, "password": password}
-    url = f"https://api.recon.space/myapi/{TOKEN}/#post-object-form"
+    url = f"https://api.recon.space/myapi/{envs.TOKEN}/#post-object-form"
 
     response = requests.post(url, json=data)
     if response.status_code == 200:
-        token_file = Path(tempfile.gettempdir()) / TOKEN_TEMP_FILE_STEM
+        token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
         # save tokens in a file
         with open(token_file, "w") as json_file:
             json.dump(response.json(), json_file)
@@ -174,7 +164,7 @@ async def orgnamepublic(interaction: discord.Interaction,
     """Company information"""
 
     if company_name:
-        url = f"{API_ROOT}/{ORGNAMEPUBLIC}/?search={company_name}"
+        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
         result = requests.get(url)
 
         if result.status_code == 200:
@@ -210,7 +200,7 @@ Here's a sample of what you can get with this command:
     "Misc"
 ]
 ```
-**Click on this link to see all the companies:** {API_ROOT}/{ORGNAMEPUBLIC}
+**Click on this link to see all the companies:** {envs.API_ROOT}/{envs.ORGNAMEPUBLIC}
 Try specifying the company's name you're looking for by retyping the command.
 '''
         await interaction.response.send_message(message, ephemeral=True)
@@ -219,19 +209,19 @@ Try specifying the company's name you're looking for by retyping the command.
 @client.tree.command()
 async def orgnamegpspublic(interaction: discord.Interaction) -> None:
     """GPS company locations"""
-    await custom_message(interaction, ORGNAMEGPSPUBLIC)
+    await custom_message(interaction, envs.ORGNAMEGPSPUBLIC)
 
 
 @client.tree.command()
 async def weaponspublic(interaction: discord.Interaction) -> None:
     """Basic information on all space weapons"""
-    await custom_message(interaction, WEAPONSPUBLIC)
+    await custom_message(interaction, envs.WEAPONSPUBLIC)
 
 
 @client.tree.command()
 async def records(interaction: discord.Interaction) -> None:
     """The number of items in each category"""
-    url = f"{API_ROOT}/{RECORDS}"
+    url = f"{envs.API_ROOT}/{envs.RECORDS}"
     response = requests.get(url)
     await interaction.response.send_message(
         build_req_message(f"**Records Count**\n{url}", response),
@@ -241,7 +231,7 @@ async def records(interaction: discord.Interaction) -> None:
 @client.tree.command()
 async def tag(interaction: discord.Interaction) -> None:
     """The identifier for each category"""
-    await custom_message(interaction, TAG)
+    await custom_message(interaction, envs.TAG)
 
 
 """
@@ -252,61 +242,61 @@ Endpoints accessible for connected users.
 @client.tree.command()
 async def myaccount(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, ACCOUNT, is_private=True)
+    await custom_message(interaction, envs.ACCOUNT, is_private=True)
 
 
 @client.tree.command()
 async def orgname(interaction: discord.Interaction) -> None:
     """Company information for logged-in users"""
-    await custom_message(interaction, ORGNAME, is_private=True)
+    await custom_message(interaction, envs.ORGNAME, is_private=True)
 
 
 @client.tree.command()
 async def orgnamegps(interaction: discord.Interaction) -> None:
     """GPS company locations for logged-in users"""
-    await custom_message(interaction, ORGNAMEGPS, is_private=True)
+    await custom_message(interaction, envs.ORGNAMEGPS, is_private=True)
 
 
 @client.tree.command()
 async def domain(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, DOMAIN, is_private=True)
+    await custom_message(interaction, envs.DOMAIN, is_private=True)
 
 
 @client.tree.command()
 async def subdomain(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, SUBDOMAIN, is_private=True)
+    await custom_message(interaction, envs.SUBDOMAIN, is_private=True)
 
 
 @client.tree.command()
 async def ip(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, IP, is_private=True)
+    await custom_message(interaction, envs.IP, is_private=True)
 
 
 @client.tree.command()
 async def satellite(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, SATELLITE, is_private=True)
+    await custom_message(interaction, envs.SATELLITE, is_private=True)
 
 
 @client.tree.command()
 async def taglaws(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, TAGLAWS, is_private=True)
+    await custom_message(interaction, envs.TAGLAWS, is_private=True)
 
 
 @client.tree.command()
 async def weapons(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, WEAPONS, is_private=True)
+    await custom_message(interaction, envs.WEAPONS, is_private=True)
 
 
 @client.tree.command()
 async def financial(interaction: discord.Interaction) -> None:
     """..."""
-    await custom_message(interaction, FINANCIAL, is_private=True)
+    await custom_message(interaction, envs.FINANCIAL, is_private=True)
 
 
 """
@@ -324,7 +314,7 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
         is_private (bool, optional): Checks if the user is logged in,
             otherwise tells the user to log in. Defaults to False.
     """
-    url = f"{API_ROOT}/{endpoint}"
+    url = f"{envs.API_ROOT}/{endpoint}"
 
     if is_private:
         headers = {"Authorization": f"JWT {get_token()}"}
@@ -335,7 +325,7 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
                 ephemeral=True)
         else:
             await interaction.response.send_message(
-                f"Please log in or create an account on : {HOME_URL}",
+                f"Please log in or create an account on : {envs.HOME_URL}",
                 ephemeral=True)
     else:
         await interaction.response.send_message(
@@ -374,7 +364,7 @@ def get_token() -> str:
     Returns:
         str: the access token
     """
-    token_file = Path(tempfile.gettempdir()) / TOKEN_TEMP_FILE_STEM
+    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
 
     if not token_file.is_file():
         print("The token file does not exist.")
@@ -403,11 +393,11 @@ def crop(message: str):
 
 
 if __name__ == "__main__":
-    client.run(BOT_TOKEN)
+    client.run(envs.BOT_TOKEN)
 
 
 def _check_tokens(endpoint: str):  # Unused for now
-    url = f"{API_ROOT}/{endpoint}"
+    url = f"{envs.API_ROOT}/{endpoint}"
     headers = {"Authorization": f"JWT {get_token()}"}
     request_response = requests.get(url, headers=headers)
 
