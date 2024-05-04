@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import typing
-import os
 import json
 import discord
 import requests
@@ -31,33 +29,10 @@ import tempfile
 from pathlib import Path
 from discord import app_commands
 
-from space_data_bot import envs
+from space_data_bot import envs, content
 
 
-GUILD_ID = discord.Object(id=os.getenv("ASTRES_ID"))
-
-# HELP DOCUMENTATION
-PUBLIC_ENDPOINTS = {
-    envs.ORGNAMEPUBLIC: "Informations basiques sur les entreprises.",
-    envs.ORGNAMEGPSPUBLIC: "Localisations GPS des entreprises.",
-    envs.WEAPONSPUBLIC: "Informations basiques sur toutes les armes du spatial.",
-    envs.TOKEN: "Allows the user to connect to Recon.Space.",
-    envs.TOKEN_REFRESH: "Actualise les autorisations d'accès à Recon.Space.",
-    envs.RECORDS: "Le nombre d'éléments que chaque catégorie contient.",
-    envs.TAG: "L'identifiant de chaque catégorie."
-}
-PRIVATE_ENDPOINTS = {
-    envs.ACCOUNT: "...",
-    envs.ORGNAME: "...",
-    envs.ORGNAMEGPS: "...",
-    envs.DOMAIN: "...",
-    envs.SUBDOMAIN: "...",
-    envs.IP: "...",
-    envs.SATELLITE: "...",
-    envs.TAGLAWS: "...",
-    envs.WEAPONS: "...",
-    envs.FINANCIAL: "..."
-}
+GUILD_ID = discord.Object(id=envs.GUILD_ID)
 
 
 """
@@ -104,11 +79,11 @@ async def help(interaction: discord.Interaction) -> None:
     """All the commands you can use with SpaceData Bot."""
 
     message = "**Endpoints accessible for everyone**\n"
-    for endpoint, doc in PUBLIC_ENDPOINTS.items():
+    for endpoint, doc in content.HELP_PUBLIC_ENDPOINTS.items():
         message += f"`/{endpoint}`: {doc}\n"
     message += "\n**Endpoints accessible for connected users**\n"
     message += "_These commands require you to be connected to recon.space._\n"
-    for endpoint, doc in PRIVATE_ENDPOINTS.items():
+    for endpoint, doc in content.HELP_PRIVATE_ENDPOINTS.items():
         message += f"`/{endpoint}`: {doc}\n"
 
     await interaction.response.send_message(message, ephemeral=True)
@@ -135,16 +110,11 @@ async def login(interaction: discord.Interaction,
         with open(token_file, "w") as json_file:
             json.dump(response.json(), json_file)
 
-        await interaction.response.send_message(
-            "You are successfully logged in!", ephemeral=True)
+        await interaction.response.send_message(content.LOG_SUCCESS,
+                                                ephemeral=True)
     else:
-        await interaction.response.send_message(
-            """
-            Error!
-            Create an account first or check that you haven't made a
-            mistake entering your login details.
-            """,
-            ephemeral=True)
+        await interaction.response.send_message(content.LOG_ERROR,
+                                                ephemeral=True)
 
 
 @client.tree.command()
@@ -153,7 +123,7 @@ async def login_refresh(interaction: discord.Interaction, refresh: str
                         ) -> None:
     """Takes a refresh type JSON web token and returns an access type JSON web
 token if the refresh token is valid."""
-    data = {"refresh": refresh}
+    pass
     # WIP
 
 
@@ -186,24 +156,8 @@ async def orgnamepublic(interaction: discord.Interaction,
                 f"Error {result.status_code}")
 
     else:
-        message = f'''
-There's a lot of data!
-Here's a sample of what you can get with this command:
-```
-"id": 3408,
-"organisationname": "NASA",
-"orgtype": "For Profit",
-"description": "NASA is responsible for the civilian space program,
-    as well as aeronautics and aerospace research.",
-"tags": [
-    "Agency",
-    "Misc"
-]
-```
-**Click on this link to see all the companies:** {envs.API_ROOT}/{envs.ORGNAMEPUBLIC}
-Try specifying the company's name you're looking for by retyping the command.
-'''
-        await interaction.response.send_message(message, ephemeral=True)
+        await interaction.response.send_message(content.ORGNAMEPUBLIC_SAMPLE,
+                                                ephemeral=True)
 
 
 @client.tree.command()
