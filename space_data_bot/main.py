@@ -29,19 +29,23 @@ import tempfile
 from pathlib import Path
 from discord import app_commands
 
-from space_data_bot import envs, content, filter
+from space_data_bot import envs, content, filter, utils
 
 
 GUILD_ID = discord.Object(id=envs.GUILD_ID)
 
 
-"""
-The bot is initialized via a class that integrates it with Discord commands
-and makes its rights explicit.
-"""
-
-
 class SpaceDataClient(discord.Client):
+    """The bot is initialized via a class that integrates it with Discord
+    commands and makes its rights explicit.
+
+    Commands are defined outside the class, but are linked to it via
+    decorators.
+    @client.tree.command(): Classic discord command
+    @app_commands.describe() : Used to add documentation to command arguments.
+    @app_commands.autocomplete(): Sets up auto-completion for a given argument.
+    @app_commands.check(): Executes the command only if the answer is True.
+    """
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
@@ -54,19 +58,6 @@ class SpaceDataClient(discord.Client):
 
 intents = discord.Intents.default()
 client = SpaceDataClient(intents=intents)
-
-
-"""
-Commands are defined outside the class, but are linked to it via decorators.
-
-@client.tree.command(): Classic discord command
-
-@app_commands.describe() : Used to add documentation to command arguments.
-
-@app_commands.autocomplete(): Sets up auto-completion for a given argument.
-
-@app_commands.check(): Executes the command only if the answer is True.
-"""
 
 
 @client.event
@@ -120,8 +111,25 @@ async def login_refresh(interaction: discord.Interaction, refresh: str
                         ) -> None:
     """Takes a refresh type JSON web token and returns an access type JSON web
 token if the refresh token is valid."""
-    pass
-    # WIP
+    url = f"https://api.recon.space/myapi/{envs.TOKEN_REFRESH}/#post-object-form"
+    data = {
+        "refresh": refresh,
+    }
+
+    result = requests.post(url, json=data)
+
+    if result.status_code != 200:
+        await interaction.response.send_message(content.LOG_ERROR,
+                                                ephemeral=True)
+        return
+
+    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
+    # save tokens in a file
+    with open(token_file, "w") as json_file:
+        json.dump(result.json(), json_file)
+
+    await interaction.response.send_message(content.LOG_SUCCESS,
+                                            ephemeral=True)
 
 # ---------------------------
 
@@ -151,7 +159,7 @@ async def orgnamepublic(interaction: discord.Interaction,
                 message += f"\n_{org.get('organisationname', '')}_"
 
             await interaction.response.send_message(
-                crop(message),
+                utils.crop(message),
                 ephemeral=True)
 
         # sends info about requested company
@@ -192,14 +200,14 @@ async def orgnamegpspublic(interaction: discord.Interaction,
                 message += f"\n_{org.get('organisationname', '')}_"
 
             await interaction.response.send_message(
-                crop(message),
+                utils.crop(message),
                 ephemeral=True)
 
         # sends info about requested company
         else:
             print(companies)
             await interaction.response.send_message(
-                crop(content.data_message(companies)),
+                utils.crop(content.data_message(companies)),
                 ephemeral=True)
 
     else:
@@ -252,7 +260,7 @@ async def weaponspublic(
             for elem in data:
                 message += f"\n_{elem.get('name', '')}_"
 
-            await interaction.response.send_message(crop(message),
+            await interaction.response.send_message(utils.crop(message),
                                                     ephemeral=True)
 
         # sends info about requested company
@@ -273,7 +281,7 @@ async def weaponspublic(
 async def records(interaction: discord.Interaction) -> None:
     """The number of items in each category"""
     url = f"{envs.API_ROOT}/{envs.RECORDS}"
-    message = crop(content.data_message(requests.get(url).json()))
+    message = utils.crop(content.data_message(requests.get(url).json()))
 
     await interaction.response.send_message(message, ephemeral=True)
 
@@ -349,11 +357,6 @@ async def financial(interaction: discord.Interaction) -> None:
     await custom_message(interaction, envs.FINANCIAL, is_private=True)
 
 
-"""
-At the end of the file, here are some useful time-saving commands.
-"""
-
-
 async def custom_message(interaction: discord.Interaction, endpoint: str,
                          is_private: bool = False):
     """Sends a message in Discord that redirects to the requested URL.
@@ -367,7 +370,7 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
     url = f"{envs.API_ROOT}/{endpoint}"
 
     if is_private:  # must be connected
-        headers = {"Authorization": f"JWT {get_token()}"}
+        headers = {"Authorization": f"JWT {utils.get_token()}"}
         result = requests.get(url, headers=headers)
 
         if result.status_code == 200:  # user is connected
@@ -382,63 +385,5 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
         await interaction.response.send_message(content.basic_message(url),
                                                 ephemeral=True)
 
-
-async def _check_request(interaction: discord.Interaction,
-                         result: requests.Response) -> bool:
-    if result.status_code != 200:
-        await interaction.response.send_message(
-            f"Error {result.status_code}")
-        return False
-
-    return True
-
-
-def refresh_token(token: str):  # WIP
-    return token
-
-
-def get_token() -> str:
-    """Get access token from temporary files, refresh if necessary.
-
-    Returns:
-        str: the access token
-    """
-    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
-
-    if not token_file.is_file():
-        print("The token file does not exist.")
-        return
-
-    with open(token_file, 'r') as file:
-        content = json.load(file)
-
-        token_access = content.get("access", None)
-
-        if not token_access:
-            token_refresh = content.get("refresh", None)
-            if not token_refresh:
-                print("The token file is empty.")
-
-            token_access = refresh_token(token_refresh)
-
-        return token_access
-
-
-def crop(message: str) -> str:
-    if len(message) > 1990:
-        message = f"{message[:1990]}\n..."
-
-    return message
-
-
 if __name__ == "__main__":
     client.run(envs.BOT_TOKEN)
-
-
-def _check_tokens(endpoint: str):  # Unused for now
-    url = f"{envs.API_ROOT}/{endpoint}"
-    headers = {"Authorization": f"JWT {get_token()}"}
-    request_response = requests.get(url, headers=headers)
-
-    if request_response.status_code == 200:
-        return True
