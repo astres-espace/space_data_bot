@@ -48,6 +48,8 @@ def data_message(data: list) -> str:
     return message
 
 
+EMPTY = "Sorry, nothing matches your search..."
+
 # LOGIN
 
 LOG_SUCCESS = "You are successfully logged in!"
@@ -59,7 +61,7 @@ LOG_UNKNOWN = f"Please log in or create an account on : {envs.HOME_URL}"
 
 # ORGNAMEPUBLIC
 
-ORGNAMEPUBLIC_SAMPLE = f"""
+ORGNAMEPUBLIC_DEFAULT = f"""
 There's a lot of data!
 Here's a sample of what you can get with this command:
 ```
@@ -73,7 +75,8 @@ Here's a sample of what you can get with this command:
     "Misc"
 ]
 ```
-**Click on this link to see all the companies:** {envs.API_ROOT}/{envs.ORGNAMEPUBLIC}
+**Click on this link to see all the companies:**
+{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}
 Try specifying the company's name you're looking for by retyping the command.
 """
 
@@ -82,6 +85,46 @@ There are more than 5 companies that contain this filter!
 Try refining your search by entering one of these names:
 """  # then show the name of each org
 
+
+# ORGNAMEGPSPUBLIC
+
+ORGNAMEGPSPUBLIC_DEFAULT = f"""
+There's a lot of data!
+Here's a sample of what you can get with this command:
+```
+"id": 492,
+"organisationname": "Arkadia Space",
+"tags": [
+    "Manufacturer"
+],
+"gps": "POINT(9.491 51.2993)"
+```
+**Click on this link to see all the companies:**
+{envs.API_ROOT}/{envs.ORGNAMEGPSPUBLIC}
+Try specifying the company's name you're looking for by retyping the command.
+"""
+
+
+# WEAPONSPUBLIC
+
+WEAPONSPUBLIC_DEFAULT = f"""
+There's a lot of data!
+Here's a sample of what you can get with this command:
+```
+"name": "RIM-161 Standard Missile 3",
+"description": "Although primarily designed as an anti-ballistic missile, ...
+"source": "https://en.wikipedia.org/wiki/RIM-161_Standard_Missile_3",
+"vectortype": "ASAT kinetic"
+```
+**Click on this link to see all the companies:**
+{envs.API_ROOT}/{envs.WEAPONSPUBLIC}
+Try specifying the weapon's name or vector type you're looking for by retyping the command.
+"""
+
+WEAPONSPUBLIC_TOO_MUCH_DATA = """
+There are more than 5 weapons that contain this filter!
+Try refining your search by entering one of these names:
+"""  # then show the name of each weapon
 
 # HELP DOCUMENTATION
 HELP_PUBLIC_ENDPOINTS = {

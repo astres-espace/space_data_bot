@@ -29,7 +29,7 @@ import tempfile
 from pathlib import Path
 from discord import app_commands
 
-from space_data_bot import envs, content
+from space_data_bot import envs, content, filter
 
 
 GUILD_ID = discord.Object(id=envs.GUILD_ID)
@@ -125,45 +125,96 @@ async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
     """Company information"""
 
-    if company_name:  # if a company is specified
-        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
-        result = requests.get(url)
-
-        if result.status_code == 200:
-            orgs = result.json().get("results", [])
-
-            if len(orgs) > 5:  # too much results
-                message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
-                for org in orgs:
-                    message += f"\n_{org.get('organisationname', '')}_"
-
-                await interaction.response.send_message(crop(message),
-                                                        ephemeral=True)
-
-            else:  # sends info about requested company
-                await interaction.response.send_message(
-                    content.data_message(orgs),
-                    ephemeral=True)
-
-        else:  # returns an error
-            await interaction.response.send_message(
-                f"Error {result.status_code}")
-
-    else:
-        await interaction.response.send_message(content.ORGNAMEPUBLIC_SAMPLE,
+    # if no company is specified
+    if not company_name:
+        await interaction.response.send_message(content.ORGNAMEPUBLIC_DEFAULT,
                                                 ephemeral=True)
+
+    url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
+    result = requests.get(url)
+
+    # returns the error
+    if result.status_code != 200:
+        await interaction.response.send_message(
+            f"Error {result.status_code}")
+        return
+
+    companies = result.json().get("results", [])
+
+    # too much results
+    if len(companies) > 5:
+        message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
+        for org in companies:
+            message += f"\n_{org.get('organisationname', '')}_"
+
+        await interaction.response.send_message(crop(message),
+                                                ephemeral=True)
+
+    # sends info about requested company
+    else:
+        await interaction.response.send_message(
+            content.data_message(companies),
+            ephemeral=True)
 
 
 @client.tree.command()
 async def orgnamegpspublic(interaction: discord.Interaction) -> None:
     """GPS company locations"""
-    await custom_message(interaction, envs.ORGNAMEGPSPUBLIC)
+    await interaction.response.send_message(content.ORGNAMEGPSPUBLIC_DEFAULT,
+                                            ephemeral=True)
 
 
 @client.tree.command()
-async def weaponspublic(interaction: discord.Interaction) -> None:
-    """Basic information on all space weapons"""
-    await custom_message(interaction, envs.WEAPONSPUBLIC)
+@app_commands.describe(name="The name of the weapon (eg: Tsyklon)",
+                       vector_type="The vector type (eg: ASAT kinetic)")
+async def weaponspublic(interaction: discord.Interaction,
+                        name: str = "",
+                        vector_type: str = ""
+                        ) -> None:
+    """..."""
+
+    if not name and not vector_type:
+        await interaction.response.send_message(content.WEAPONSPUBLIC_DEFAULT,
+                                                ephemeral=True)
+
+    url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
+    result = requests.get(url)
+
+    # returns the error
+    if result.status_code != 200:
+        await interaction.response.send_message(
+            f"Error {result.status_code}")
+        return
+
+    # filters
+    data = []
+    if name and vector_type:
+        data += filter.request_filter(result, key="name", value=name)
+        by_vector = filter.request_filter(result, key="vectortype", value=vector_type)
+        data += [elem for elem in by_vector if name in elem["name"]]
+
+    elif name and not vector_type:
+        data += filter.request_filter(result, key="name", value=name)
+
+    elif vector_type and not name:
+        data += filter.request_filter(result, key="vectortype", value=vector_type)
+
+    # messages
+    if not data:
+        await interaction.response.send_message(content.EMPTY, ephemeral=True)
+
+    elif len(data) > envs.MAX_ITER_NUMBER:  # too much results
+        message = content.WEAPONSPUBLIC_TOO_MUCH_DATA
+        for elem in data:
+            message += f"\n_{elem.get('name', '')}_"
+
+        await interaction.response.send_message(crop(message),
+                                                ephemeral=True)
+
+    else:  # sends info about requested company
+        await interaction.response.send_message(
+            content.data_message(data),
+            ephemeral=True)
 
 
 @client.tree.command()

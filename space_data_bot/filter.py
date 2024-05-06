@@ -22,40 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import os
+import requests
+
+url = "https://api.recon.space/myapi/weaponspublic/"
 
 
-# DISCORD ENV
-# Replace BOT_TOKEN, GUILD_ID and CHANNEL_ID with your own information
-BOT_TOKEN = os.getenv("DISCORD_BOT")
-GUILD_ID = os.getenv("ASTRES_ID")
-CHANNEL_ID = os.getenv("SPACEDATA_CHANNEL_ID")
+def request_filter(result: requests.Response, key: str, value: str) -> list[str]:
+    data = result.json()
+    return [elem for elem in data if key in elem and value.lower() in elem[key].lower()]
 
-# DESTINATION ENV
-# Do not edit these constants
-HOME_URL = "https://recon.space"
-API_ROOT = "https://api.recon.space/myapi"
-TOKEN_TEMP_FILE_STEM = "space_data_tokens.json"
 
-# PUBLIC ENDPOINTS
-ORGNAMEPUBLIC = "orgnamepublic"
-ORGNAMEGPSPUBLIC = "orgnamegpspublic"  # filter
-WEAPONSPUBLIC = "weaponspublic"
-TOKEN = "token"
-TOKEN_REFRESH = "token/refresh"
-RECORDS = "records"
-TAG = "tag"
-
-# CONNECTED ENDPOINTS
-ACCOUNT = "myaccount"
-ORGNAME = "orgname"  # filter by name, city, tag
-ORGNAMEGPS = "orgnamegps"  # filter
-DOMAIN = "domain"
-SUBDOMAIN = "subdomain"
-IP = "ip"
-SATELLITE = "satellite"  # filter
-TAGLAWS = "taglaws"
-WEAPONS = "weapons"
-FINANCIAL = "financial"
-
-MAX_ITER_NUMBER = 5
+if __name__ == "__main__":
+    for elem in request_filter(url, "name", "RIM"):
+        print(elem)
