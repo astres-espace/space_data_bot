@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import requests
 import json
 from space_data_bot import envs
 
@@ -31,24 +30,20 @@ def basic_message(url: str) -> str:
     return f"See your results here : {url}"
 
 
-def request_message(title: str, response: requests.models.Response) -> str:
+def data_message(data: list) -> str:
     """
-    Breaks down the result of a request and converts it into a Discord message.
-
-    Args:
-        title (str): Message title
-    """
-
-    message = f"""
-    {title}
-    ```json
-    {json.dumps(response.json(), indent=4)}
-    ```
+    Breaks down the result of a request and converts it into a Discord message
     """
 
     # The maximum length of a Discord message is 2000 characters.
-    if len(message) > 1990:
-        message = message[:1990] + "\n..."
+    if len(data) > 1990:
+        data = data[:1990] + "\n..."
+
+    message = f"""
+    ```json
+    {json.dumps(data, indent=4)}
+    ```
+    """
 
     return message
 

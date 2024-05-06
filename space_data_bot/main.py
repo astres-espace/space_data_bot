@@ -125,23 +125,27 @@ async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
     """Company information"""
 
-    if company_name:
+    if company_name:  # if a company is specified
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
         result = requests.get(url)
 
         if result.status_code == 200:
             orgs = result.json().get("results", [])
-            if len(orgs) > 5:
+
+            if len(orgs) > 5:  # too much results
                 message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
                 for org in orgs:
-                    message += f"\n{org.get('organisationname', '')}"
+                    message += f"\n_{org.get('organisationname', '')}_"
 
                 await interaction.response.send_message(crop(message),
                                                         ephemeral=True)
-            else:
-                await interaction.response.send_message(crop(orgs),
-                                                        ephemeral=True)
-        else:
+
+            else:  # sends info about requested company
+                await interaction.response.send_message(
+                    content.data_message(orgs),
+                    ephemeral=True)
+
+        else:  # returns an error
             await interaction.response.send_message(
                 f"Error {result.status_code}")
 
@@ -166,9 +170,8 @@ async def weaponspublic(interaction: discord.Interaction) -> None:
 async def records(interaction: discord.Interaction) -> None:
     """The number of items in each category"""
     url = f"{envs.API_ROOT}/{envs.RECORDS}"
-    response = requests.get(url)
-    message = crop(content.request_message(f"**Records Count**\n{url}",
-                                           response))
+    message = crop(content.data_message(requests.get(url).json()))
+
     await interaction.response.send_message(message, ephemeral=True)
 
 
@@ -260,18 +263,19 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
     """
     url = f"{envs.API_ROOT}/{endpoint}"
 
-    if is_private:
+    if is_private:  # must be connected
         headers = {"Authorization": f"JWT {get_token()}"}
         result = requests.get(url, headers=headers)
-        if result.status_code == 200:
-            message = crop(content.request_message(f"**{endpoint}**\n{url}",
-                                                   result))
+
+        if result.status_code == 200:  # user is connected
+            message = content.data_message(result.json())
             await interaction.response.send_message(message, ephemeral=True)
 
-        else:
+        else:  # user is not connected
             await interaction.response.send_message(content.LOG_UNKNOWN,
                                                     ephemeral=True)
-    else:
+
+    else:  # public endpoint
         await interaction.response.send_message(content.basic_message(url),
                                                 ephemeral=True)
 
@@ -307,7 +311,7 @@ def get_token() -> str:
         return token_access
 
 
-def crop(message: str):
+def crop(message: str) -> str:
     if len(message) > 1990:
         message = f"{message[:1990]}\n..."
 
