@@ -169,10 +169,43 @@ async def orgnamepublic(interaction: discord.Interaction,
 
 
 @client.tree.command()
-async def orgnamegpspublic(interaction: discord.Interaction) -> None:
+@app_commands.describe(company_name="The name of the company")
+async def orgnamegpspublic(interaction: discord.Interaction,
+                           company_name: str = "") -> None:
     """GPS company locations"""
-    await interaction.response.send_message(content.ORGNAMEGPSPUBLIC_DEFAULT,
-                                            ephemeral=True)
+    if company_name:
+        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?orgname={company_name}"
+        result = requests.get(url)
+
+        # checks if error
+        if result.status_code != 200:
+            await interaction.response.send_message(
+                f"Error {result.status_code}")
+            return
+
+        companies = result.json().get("results", [])
+
+        # too much results
+        if len(companies) > 5:
+            message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
+            for org in companies:
+                message += f"\n_{org.get('organisationname', '')}_"
+
+            await interaction.response.send_message(
+                crop(message),
+                ephemeral=True)
+
+        # sends info about requested company
+        else:
+            print(companies)
+            await interaction.response.send_message(
+                crop(content.data_message(companies)),
+                ephemeral=True)
+
+    else:
+        await interaction.response.send_message(
+            content.ORGNAMEGPSPUBLIC_DEFAULT,
+            ephemeral=True)
 
 # ---------------------------
 
