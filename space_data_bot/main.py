@@ -92,21 +92,26 @@ async def login(interaction: discord.Interaction,
                 email: str, password: str) -> None:
     """Allows the user to connect to Recon.Space."""
 
-    data = {"email": email, "password": password}
     url = f"https://api.recon.space/myapi/{envs.TOKEN}/#post-object-form"
+    data = {
+        "email": email,
+        "password": password
+    }
 
-    response = requests.post(url, json=data)
-    if response.status_code == 200:
-        token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
-        # save tokens in a file
-        with open(token_file, "w") as json_file:
-            json.dump(response.json(), json_file)
+    result = requests.post(url, json=data)
 
-        await interaction.response.send_message(content.LOG_SUCCESS,
-                                                ephemeral=True)
-    else:
+    if result.status_code != 200:
         await interaction.response.send_message(content.LOG_ERROR,
                                                 ephemeral=True)
+        return
+
+    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
+    # save tokens in a file
+    with open(token_file, "w") as json_file:
+        json.dump(result.json(), json_file)
+
+    await interaction.response.send_message(content.LOG_SUCCESS,
+                                            ephemeral=True)
 
 
 @client.tree.command()
@@ -118,6 +123,8 @@ token if the refresh token is valid."""
     pass
     # WIP
 
+# ---------------------------
+
 
 @client.tree.command()
 @app_commands.describe(company_name="The name of the company")
@@ -125,36 +132,40 @@ async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
     """Company information"""
 
+    if company_name:
+        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
+        result = requests.get(url)
+
+        # checks if error
+        if result.status_code != 200:
+            await interaction.response.send_message(
+                f"Error {result.status_code}")
+            return
+
+        companies = result.json().get("results", [])
+
+        # too much results
+        if len(companies) > 5:
+            message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
+            for org in companies:
+                message += f"\n_{org.get('organisationname', '')}_"
+
+            await interaction.response.send_message(
+                crop(message),
+                ephemeral=True)
+
+        # sends info about requested company
+        else:
+            await interaction.response.send_message(
+                content.data_message(companies),
+                ephemeral=True)
+
     # if no company is specified
-    if not company_name:
+    else:
         await interaction.response.send_message(content.ORGNAMEPUBLIC_DEFAULT,
                                                 ephemeral=True)
 
-    url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
-    result = requests.get(url)
-
-    # returns the error
-    if result.status_code != 200:
-        await interaction.response.send_message(
-            f"Error {result.status_code}")
-        return
-
-    companies = result.json().get("results", [])
-
-    # too much results
-    if len(companies) > 5:
-        message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
-        for org in companies:
-            message += f"\n_{org.get('organisationname', '')}_"
-
-        await interaction.response.send_message(crop(message),
-                                                ephemeral=True)
-
-    # sends info about requested company
-    else:
-        await interaction.response.send_message(
-            content.data_message(companies),
-            ephemeral=True)
+# ---------------------------
 
 
 @client.tree.command()
@@ -163,58 +174,66 @@ async def orgnamegpspublic(interaction: discord.Interaction) -> None:
     await interaction.response.send_message(content.ORGNAMEGPSPUBLIC_DEFAULT,
                                             ephemeral=True)
 
+# ---------------------------
+
 
 @client.tree.command()
 @app_commands.describe(name="The name of the weapon (eg: Tsyklon)",
                        vector_type="The vector type (eg: ASAT kinetic)")
-async def weaponspublic(interaction: discord.Interaction,
-                        name: str = "",
-                        vector_type: str = ""
-                        ) -> None:
-    """..."""
-
-    if not name and not vector_type:
-        await interaction.response.send_message(content.WEAPONSPUBLIC_DEFAULT,
-                                                ephemeral=True)
+async def weaponspublic(
+    interaction: discord.Interaction, name: str = "", vector_type: str = ""
+) -> None:
+    """Basic information on all space weapons."""
 
     url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
     result = requests.get(url)
 
-    # returns the error
+    # checks if error
     if result.status_code != 200:
         await interaction.response.send_message(
             f"Error {result.status_code}")
         return
 
-    # filters
-    data = []
-    if name and vector_type:
-        data += filter.request_filter(result, key="name", value=name)
-        by_vector = filter.request_filter(result, key="vectortype", value=vector_type)
-        data += [elem for elem in by_vector if name in elem["name"]]
+    if name or vector_type:
+        # filters
+        data = []
+        if name:
+            data += filter.request_filter(result, key="name", value=name)
 
-    elif name and not vector_type:
-        data += filter.request_filter(result, key="name", value=name)
+        if vector_type:
+            by_vector = filter.request_filter(result, key="vectortype",
+                                              value=vector_type)
+            if name:
+                data += [elem for elem in by_vector if name in elem["name"]]
+            else:
+                data += by_vector
 
-    elif vector_type and not name:
-        data += filter.request_filter(result, key="vectortype", value=vector_type)
+        # no result
+        if not data:
+            await interaction.response.send_message(content.EMPTY,
+                                                    ephemeral=True)
 
-    # messages
-    if not data:
-        await interaction.response.send_message(content.EMPTY, ephemeral=True)
+        # too much results
+        elif len(data) > envs.MAX_ITER_NUMBER:
+            message = content.WEAPONSPUBLIC_TOO_MUCH_DATA
+            for elem in data:
+                message += f"\n_{elem.get('name', '')}_"
 
-    elif len(data) > envs.MAX_ITER_NUMBER:  # too much results
-        message = content.WEAPONSPUBLIC_TOO_MUCH_DATA
-        for elem in data:
-            message += f"\n_{elem.get('name', '')}_"
+            await interaction.response.send_message(crop(message),
+                                                    ephemeral=True)
 
-        await interaction.response.send_message(crop(message),
+        # sends info about requested company
+        else:
+            await interaction.response.send_message(
+                content.data_message(data),
+                ephemeral=True)
+
+    # no argument specified
+    else:
+        await interaction.response.send_message(content.WEAPONSPUBLIC_DEFAULT,
                                                 ephemeral=True)
 
-    else:  # sends info about requested company
-        await interaction.response.send_message(
-            content.data_message(data),
-            ephemeral=True)
+# ---------------------------
 
 
 @client.tree.command()
@@ -329,6 +348,16 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
     else:  # public endpoint
         await interaction.response.send_message(content.basic_message(url),
                                                 ephemeral=True)
+
+
+async def _check_request(interaction: discord.Interaction,
+                         result: requests.Response) -> bool:
+    if result.status_code != 200:
+        await interaction.response.send_message(
+            f"Error {result.status_code}")
+        return False
+
+    return True
 
 
 def refresh_token(token: str):  # WIP

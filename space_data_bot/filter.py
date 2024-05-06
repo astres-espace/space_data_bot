@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+# TEMP, TO REPLACE BY REAL FILTERS
+
 import requests
 
 url = "https://api.recon.space/myapi/weaponspublic/"

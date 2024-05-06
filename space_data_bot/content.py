@@ -128,24 +128,24 @@ Try refining your search by entering one of these names:
 
 # HELP DOCUMENTATION
 HELP_PUBLIC_ENDPOINTS = {
-    envs.ORGNAMEPUBLIC: "Informations basiques sur les entreprises.",
-    envs.ORGNAMEGPSPUBLIC: "Localisations GPS des entreprises.",
-    envs.WEAPONSPUBLIC: "Informations basiques sur toutes les armes du spatial.",
+    envs.ORGNAMEPUBLIC: "Company information",
+    envs.ORGNAMEGPSPUBLIC: "GPS company locations",
+    envs.WEAPONSPUBLIC: "Basic information on all space weapons.",
     envs.TOKEN: "Allows the user to connect to Recon.Space.",
-    envs.TOKEN_REFRESH: "Actualise les autorisations d'accès à Recon.Space.",
-    envs.RECORDS: "Le nombre d'éléments que chaque catégorie contient.",
-    envs.TAG: "L'identifiant de chaque catégorie."
+    envs.TOKEN_REFRESH: "Update Recon.Space access permissions.",
+    envs.RECORDS: "The number of items in each category.",
+    envs.TAG: "The identifier for each category."
 }
 HELP_PRIVATE_ENDPOINTS = {
-    envs.ACCOUNT: "...",
-    envs.ORGNAME: "...",
-    envs.ORGNAMEGPS: "...",
+    envs.ACCOUNT: "User account information",
+    envs.ORGNAME: "Company information",
+    envs.ORGNAMEGPS: "GPS company locations",
     envs.DOMAIN: "...",
     envs.SUBDOMAIN: "...",
     envs.IP: "...",
     envs.SATELLITE: "...",
     envs.TAGLAWS: "...",
-    envs.WEAPONS: "...",
+    envs.WEAPONS: "Basic information on all space weapons for logged users.",
     envs.FINANCIAL: "..."
 }
 
