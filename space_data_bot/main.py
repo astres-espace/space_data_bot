@@ -77,16 +77,8 @@ async def on_ready():
 @client.tree.command()
 async def help(interaction: discord.Interaction) -> None:
     """All the commands you can use with SpaceData Bot."""
-
-    message = "**Endpoints accessible for everyone**\n"
-    for endpoint, doc in content.HELP_PUBLIC_ENDPOINTS.items():
-        message += f"`/{endpoint}`: {doc}\n"
-    message += "\n**Endpoints accessible for connected users**\n"
-    message += "_These commands require you to be connected to recon.space._\n"
-    for endpoint, doc in content.HELP_PRIVATE_ENDPOINTS.items():
-        message += f"`/{endpoint}`: {doc}\n"
-
-    await interaction.response.send_message(message, ephemeral=True)
+    await interaction.response.send_message(content.help_message(),
+                                            ephemeral=True)
 
 
 """
@@ -140,11 +132,9 @@ async def orgnamepublic(interaction: discord.Interaction,
         if result.status_code == 200:
             orgs = result.json().get("results", [])
             if len(orgs) > 5:
-                message = "There are more than 5 companies that contain \
-                this filter!\nTry refining your search by entering one of \
-                these names:"
+                message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
                 for org in orgs:
-                    message += f"{org.get('organisationname', '')}\n"
+                    message += f"\n{org.get('organisationname', '')}"
 
                 await interaction.response.send_message(crop(message),
                                                         ephemeral=True)
@@ -177,9 +167,9 @@ async def records(interaction: discord.Interaction) -> None:
     """The number of items in each category"""
     url = f"{envs.API_ROOT}/{envs.RECORDS}"
     response = requests.get(url)
-    await interaction.response.send_message(
-        build_req_message(f"**Records Count**\n{url}", response),
-        ephemeral=True)
+    message = crop(content.request_message(f"**Records Count**\n{url}",
+                                           response))
+    await interaction.response.send_message(message, ephemeral=True)
 
 
 @client.tree.command()
@@ -274,38 +264,16 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
         headers = {"Authorization": f"JWT {get_token()}"}
         result = requests.get(url, headers=headers)
         if result.status_code == 200:
-            await interaction.response.send_message(
-                build_req_message(f"**{endpoint}**\n{url}", result),
-                ephemeral=True)
+            message = crop(content.request_message(f"**{endpoint}**\n{url}",
+                                                   result))
+            await interaction.response.send_message(message, ephemeral=True)
+
         else:
-            await interaction.response.send_message(
-                f"Please log in or create an account on : {envs.HOME_URL}",
-                ephemeral=True)
+            await interaction.response.send_message(content.LOG_UNKNOWN,
+                                                    ephemeral=True)
     else:
-        await interaction.response.send_message(
-            f"See your results here : {url}", ephemeral=True)
-
-
-def build_req_message(title: str, response: requests.models.Response) -> str:
-    """
-    Breaks down the result of a request and converts it into a Discord message.
-
-    Args:
-        title (str): Message title
-    """
-
-    message = f"""
-    {title}
-    ```json
-    {json.dumps(response.json(), indent=4)}
-    ```
-    """
-
-    # The maximum length of a Discord message is 2000 characters.
-    if len(message) > 1990:
-        message = message[:1990] + "\n..."
-
-    return message
+        await interaction.response.send_message(content.basic_message(url),
+                                                ephemeral=True)
 
 
 def refresh_token(token: str):  # WIP
