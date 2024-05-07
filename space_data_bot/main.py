@@ -76,6 +76,10 @@ async def help(interaction: discord.Interaction) -> None:
 Endpoints commands accessible for everyone.
 """
 
+# HUGE PROBLEM ! THE TEMPFILE IS ON THE SAME SERVER FOR EVERYONE
+# Create dict with user mail as key and token as values ?
+# Ask for a user specific token location when connecting ?
+
 
 @client.tree.command()
 @app_commands.describe(email="your email", password="your password")
@@ -83,7 +87,7 @@ async def login(interaction: discord.Interaction,
                 email: str, password: str) -> None:
     """Allows the user to connect to Recon.Space."""
 
-    url = f"https://api.recon.space/myapi/{envs.TOKEN}/#post-object-form"
+    url = f"{envs.API_ROOT}/{envs.TOKEN}/#post-object-form"
     data = {
         "email": email,
         "password": password
@@ -111,7 +115,7 @@ async def login_refresh(interaction: discord.Interaction, refresh: str
                         ) -> None:
     """Takes a refresh type JSON web token and returns an access type JSON web
 token if the refresh token is valid."""
-    url = f"https://api.recon.space/myapi/{envs.TOKEN_REFRESH}/#post-object-form"
+    url = f"{envs.API_ROOT}/{envs.TOKEN_REFRESH}/#post-object-form"
     data = {
         "refresh": refresh,
     }
