@@ -28,21 +28,6 @@ import requests
 from space_data_bot import envs
 
 
-def update_token(user_id: str):
-    """Sends a request to refresh the token
-    """
-    token = get_token(user_id, refresh=True)
-
-    url = f"{envs.API_ROOT}/{envs.TOKEN_REFRESH}/#post-object-form"
-    data = {"refresh": token}
-
-    resp = requests.post(url, json=data)
-    if resp.status_code == 200:
-        resp_json = resp.json()
-        set_token(user_id, resp_json)
-        return resp_json["access"]
-
-
 def get_token(user_id: str, refresh: bool = False) -> str:
     """Get access token from temporary files, refresh if necessary.
 
@@ -88,6 +73,37 @@ def set_token(user_id: str, credentials: dict) -> dict:
         file.seek(0)
         json.dump(content, file, indent=4)
         return content
+
+
+def update_token(user_id: str):
+    """Sends a request to refresh the token
+    """
+    token = get_token(user_id, refresh=True)
+
+    url = f"{envs.API_ROOT}/{envs.TOKEN_REFRESH}/#post-object-form"
+    data = {"refresh": token}
+
+    resp = requests.post(url, json=data)
+    if resp.status_code == 200:
+        resp_json = resp.json()
+        set_token(user_id, resp_json)
+        return resp_json["access"]
+
+
+def header_request(url: str, headers: dict) -> requests.Response:
+    return requests.get(url, headers=headers)
+
+
+def auth_request(url: str, token: str) -> requests.Response:
+    return header_request(url, {"Authorization": f"JWT {token}"})
+
+
+def post_request(url: str, data: dict) -> requests.Response:
+    return requests.post(url, json=data)
+
+
+def get_request(url: str) -> requests.Response:
+    return requests.get(url)
 
 
 def crop(message: str) -> str:

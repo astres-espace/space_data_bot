@@ -22,10 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import aiohttp.web_response
 import discord
-import requests
-import aiohttp
 from discord import app_commands
 
 from space_data_bot import envs, content, filter, utils
@@ -81,8 +78,8 @@ Endpoints commands accessible for everyone.
 
 @client.tree.command()
 @app_commands.describe(email="your email", password="your password")
-async def login(interaction: discord.Interaction,
-                email: str, password: str) -> None:
+async def connect(interaction: discord.Interaction,
+                  email: str, password: str) -> None:
     """Allows a user to connect to their account;
     an access token and a refresh token are provided."""
 
@@ -92,7 +89,7 @@ async def login(interaction: discord.Interaction,
         "password": password
     }
 
-    resp = requests.post(url, json=data)
+    resp = utils.post_request(url, data)
     if resp.status_code != 200:
         await interaction.response.send_message(content.LOG_ERROR,
                                                 ephemeral=True)
@@ -108,7 +105,7 @@ async def login(interaction: discord.Interaction,
 
 
 @client.tree.command()
-@app_commands.describe(company_name="The name of the company")
+@app_commands.describe(company_name="The name of the organization")
 async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
     """Allows a user to get information about space organizations
@@ -116,7 +113,7 @@ async def orgnamepublic(interaction: discord.Interaction,
 
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
-        resp = requests.get(url)
+        resp = utils.get_request(url)
 
         # checks if error
         if resp.status_code != 200:
@@ -144,7 +141,7 @@ async def orgnamepublic(interaction: discord.Interaction,
 
     # if no company is specified
     else:
-        await interaction.response.send_message(content.ORGNAMEPUBLIC_DEFAULT,
+        await interaction.response.send_message(content.ORGNAME_DEFAULT,
                                                 ephemeral=True)
 
 # ---------------------------
@@ -158,7 +155,7 @@ async def orgnamegpspublic(interaction: discord.Interaction,
     organizations (33% of DB content)."""
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?orgname={company_name}"
-        resp = requests.get(url)
+        resp = utils.get_request(url)
 
         # checks if error
         if resp.status_code != 200:
@@ -170,7 +167,7 @@ async def orgnamegpspublic(interaction: discord.Interaction,
 
         # too much results
         if len(companies) > 5:
-            message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
+            message = content.TOO_MUCH_DATA
             for org in companies:
                 message += f"\n_{org.get('organisationname', '')}_"
 
@@ -187,7 +184,7 @@ async def orgnamegpspublic(interaction: discord.Interaction,
 
     else:
         await interaction.response.send_message(
-            content.ORGNAMEGPSPUBLIC_DEFAULT,
+            content.ORGNAMEGPS_DEFAULT,
             ephemeral=True)
 
 # ---------------------------
@@ -203,7 +200,7 @@ async def weaponspublic(
     (not all details)."""
 
     url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
-    resp = requests.get(url)
+    resp = utils.get_request(url)
 
     # checks if error
     if resp.status_code != 200:
@@ -232,7 +229,7 @@ async def weaponspublic(
 
         # too much results
         elif len(data) > envs.MAX_ITER_NUMBER:
-            message = content.WEAPONSPUBLIC_TOO_MUCH_DATA
+            message = content.TOO_MUCH_DATA
             for elem in data:
                 message += f"\n_{elem.get('name', '')}_"
 
@@ -247,7 +244,7 @@ async def weaponspublic(
 
     # no argument specified
     else:
-        await interaction.response.send_message(content.WEAPONSPUBLIC_DEFAULT,
+        await interaction.response.send_message(content.WEAPONS_DEFAULT,
                                                 ephemeral=True)
 
 # ---------------------------
@@ -257,7 +254,7 @@ async def weaponspublic(
 async def records(interaction: discord.Interaction) -> None:
     """Allows a user to get an insight into the database content."""
     url = f"{envs.API_ROOT}/{envs.RECORDS}"
-    message = utils.crop(content.data_message(requests.get(url).json()))
+    message = utils.crop(content.data_message(utils.get_request(url).json()))
 
     await interaction.response.send_message(message, ephemeral=True)
 
@@ -321,8 +318,8 @@ async def satellite(interaction: discord.Interaction) -> None:
 
 @client.tree.command()
 async def taglaws(interaction: discord.Interaction) -> None:
-    """Allows a user to get information of potential laws and guidelines to
-    which a space organization is subject."""
+    """Allows a user to get information of laws and guidelines to which a
+    space organization is subject."""
     await custom_message(interaction, envs.TAGLAWS, is_private=True)
 
 
@@ -339,9 +336,9 @@ async def financial(interaction: discord.Interaction) -> None:
     await custom_message(interaction, envs.FINANCIAL, is_private=True)
 
 
-async def message_conditions(interaction: discord.Interaction,
-                             resp: requests.Response, url: str,
-                             is_data: bool) -> None:
+async def _message_conditions(interaction: discord.Interaction,
+                              resp, url: str,
+                              is_data: bool) -> None:
     """Sends a message depending on the conditions chosen:
     whether it's in the form of a coded message or the basic message
     with the url.
@@ -384,32 +381,31 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
         user_id = interaction.user.id  # the id is used to find the user
         token = utils.get_token(user_id)
 
-        if token == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
-            await interaction.response.send_message(content.LOG_INIT_ERROR,
-                                                    ephemeral=True)
-
-        elif token == envs.TOKEN_USER_ERROR_ID:  # no user account yet
-            await interaction.response.send_message(content.LOG_UNKNOWN,
-                                                    ephemeral=True)
-
-        else:  # try access token
-            headers = {"Authorization": f"JWT {token}"}
-            resp = requests.get(url, headers=headers)
+        if isinstance(token, str):
+            resp = utils.auth_request(url, token)
             if resp.status_code == 200:  # access token is still ok
-                await message_conditions(interaction, resp, url, is_data)
+                await _message_conditions(interaction, resp, url, is_data)
 
             else:  # token needs to be refreshed
-                token_updated = utils.update_token(user_id)
-                # try the request again
-                headers = {
-                    "Authorization": f"JWT {token_updated}"
-                }
-                resp = requests.get(url, headers=headers)
-                await message_conditions(interaction, resp, url, is_data)
+                resp = utils.auth_request(url,
+                                          utils.update_token(user_id))
+                await _message_conditions(interaction, resp, url, is_data)
+        else:
+            await _send_exception(interaction, token)
 
     else:  # is public
-        resp = requests.get(url)
-        await message_conditions(interaction, resp, url, is_data)
+        resp = utils.get_request(url)
+        await _message_conditions(interaction, resp, url, is_data)
+
+
+async def _send_exception(interaction: discord.Interaction, status_code: int):
+    if status_code == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
+        await interaction.response.send_message(content.LOG_INIT_ERROR,
+                                                ephemeral=True)
+
+    elif status_code == envs.TOKEN_USER_ERROR_ID:  # no user account yet
+        await interaction.response.send_message(content.LOG_UNKNOWN,
+                                                ephemeral=True)
 
 
 if __name__ == "__main__":
