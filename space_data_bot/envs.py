@@ -51,15 +51,23 @@ TAG = "tag"
 
 # CONNECTED ENDPOINTS
 ACCOUNT = "myaccount"
-ORGNAME = "orgname"  # filter by name, city, tag
-ORGNAMEGPS = "orgnamegps"  # filter
+ORGNAME = "orgname"
+ORGNAMEGPS = "orgnamegps"
 DOMAIN = "domain"
 SUBDOMAIN = "subdomain"
 IP = "ip"
-SATELLITE = "satellite"  # filter
+SATELLITE = "satellite"
 TAGLAWS = "taglaws"
 WEAPONS = "weapons"
 FINANCIAL = "financial"
+
+# FILTERS
+F_ORGNAME = "orgname"
+F_TAG = "tags"
+F_SATNAME = "satellitename"
+F_SATCOUNTRY = "satellitecountryoperator"
+F_SATORBIT = "satelliteorbit"
+F_SATVEHICLE = "satellitelaunchvehicle"
 
 MAX_ITER_NUMBER = 5
 MAX_MESSAGE_LENGTH = 1980

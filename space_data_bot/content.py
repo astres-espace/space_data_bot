@@ -112,25 +112,24 @@ Try refining your search by entering one of these names:
 
 # HELP DOCUMENTATION
 HELP_PUBLIC_ENDPOINTS = {
-    envs.ORGNAMEPUBLIC: "Company information",
-    envs.ORGNAMEGPSPUBLIC: "GPS company locations",
-    envs.WEAPONSPUBLIC: "Basic information on all space weapons.",
-    envs.TOKEN: "Allows the user to connect to Recon.Space.",
-    envs.TOKEN_REFRESH: "Update Recon.Space access permissions.",
-    envs.RECORDS: "The number of items in each category.",
-    envs.TAG: "The identifier for each category."
+    envs.TOKEN: "Allows a user to connect to their account; an access token and a refresh token are provided.",
+    envs.RECORDS: "Allows a user to get an insight into the database content.",
+    envs.ORGNAMEPUBLIC: "Allows a user to get information about space organizations (50% of DB content).",
+    envs.ORGNAMEGPSPUBLIC: "Allows a user to get information about the localization of space organizations (33% of DB content).",
+    envs.WEAPONSPUBLIC: "Allows a user to get information about space-related weapons (not all details).",
+    envs.TAG: "Allows a user to get all tags available for filtering purposes."
 }
 HELP_PRIVATE_ENDPOINTS = {
-    envs.ACCOUNT: "User account information",
-    envs.ORGNAME: "Company information",
-    envs.ORGNAMEGPS: "GPS company locations",
-    envs.DOMAIN: "...",
-    envs.SUBDOMAIN: "...",
-    envs.IP: "...",
-    envs.SATELLITE: "...",
-    envs.TAGLAWS: "...",
-    envs.WEAPONS: "Basic information on all space weapons for logged users.",
-    envs.FINANCIAL: "..."
+    envs.ACCOUNT: "Once logged in, you can check your account details.",
+    envs.ORGNAME: "Allows a user to get information about space organizations.",
+    envs.ORGNAMEGPS: "Allows a user to get information about space organizations.",
+    envs.DOMAIN: "Allows a user to get information about domains owned by a space organization.",
+    envs.SUBDOMAIN: "Allows a user to get information about sub-domains used by a space organization.",
+    envs.IP: "Allows a user to get information about IP addresses used by a space organization.",
+    envs.SATELLITE: "Allows a user to get information about satellites of a space organization.",
+    envs.TAGLAWS: "Allows a user to get information of potential laws and guidelines to which a space organization is subject.",
+    envs.WEAPONS: "Allows a user to get information about space-related weapons.",
+    envs.FINANCIAL: "Allows a user to get information about finance of a space organization."
 }
 
 

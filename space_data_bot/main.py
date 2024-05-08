@@ -83,7 +83,8 @@ Endpoints commands accessible for everyone.
 @app_commands.describe(email="your email", password="your password")
 async def login(interaction: discord.Interaction,
                 email: str, password: str) -> None:
-    """Allows the user to connect to Recon.Space."""
+    """Allows a user to connect to their account;
+    an access token and a refresh token are provided."""
 
     url = f"{envs.API_ROOT}/{envs.TOKEN}/#post-object-form"
     data = {
@@ -110,7 +111,8 @@ async def login(interaction: discord.Interaction,
 @app_commands.describe(company_name="The name of the company")
 async def orgnamepublic(interaction: discord.Interaction,
                         company_name: str = "") -> None:
-    """Company information"""
+    """Allows a user to get information about space organizations
+    (50% of DB content)."""
 
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
@@ -152,7 +154,8 @@ async def orgnamepublic(interaction: discord.Interaction,
 @app_commands.describe(company_name="The name of the company")
 async def orgnamegpspublic(interaction: discord.Interaction,
                            company_name: str = "") -> None:
-    """GPS company locations"""
+    """Allows a user to get information about the localization of space
+    organizations (33% of DB content)."""
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?orgname={company_name}"
         resp = requests.get(url)
@@ -196,7 +199,8 @@ async def orgnamegpspublic(interaction: discord.Interaction,
 async def weaponspublic(
     interaction: discord.Interaction, name: str = "", vector_type: str = ""
 ) -> None:
-    """Basic information on all space weapons."""
+    """Allows a user to get information about space-related weapons
+    (not all details)."""
 
     url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
     resp = requests.get(url)
@@ -251,7 +255,7 @@ async def weaponspublic(
 
 @client.tree.command()
 async def records(interaction: discord.Interaction) -> None:
-    """The number of items in each category"""
+    """Allows a user to get an insight into the database content."""
     url = f"{envs.API_ROOT}/{envs.RECORDS}"
     message = utils.crop(content.data_message(requests.get(url).json()))
 
@@ -260,7 +264,7 @@ async def records(interaction: discord.Interaction) -> None:
 
 @client.tree.command()
 async def tag(interaction: discord.Interaction) -> None:
-    """The identifier for each category"""
+    """Allows a user to get all tags available for filtering purposes."""
     await custom_message(interaction, envs.TAG, is_data=True)
 
 
@@ -271,61 +275,67 @@ Endpoints accessible for connected users.
 
 @client.tree.command()
 async def myaccount(interaction: discord.Interaction) -> None:
-    """..."""
+    """Once logged in, you can check your account details."""
     await custom_message(interaction, envs.ACCOUNT, is_private=True)
 
 
 @client.tree.command()
 async def orgname(interaction: discord.Interaction) -> None:
-    """Company information for logged-in users"""
+    """Allows a user to get information about space organizations."""
     await custom_message(interaction, envs.ORGNAME, is_private=True)
 
 
 @client.tree.command()
 async def orgnamegps(interaction: discord.Interaction) -> None:
-    """GPS company locations for logged-in users"""
+    """Allows a user to get information about space organizations."""
     await custom_message(interaction, envs.ORGNAMEGPS, is_private=True)
 
 
 @client.tree.command()
 async def domain(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about domains owned by a space
+    organization."""
     await custom_message(interaction, envs.DOMAIN, is_private=True)
 
 
 @client.tree.command()
 async def subdomain(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about sub-domains used by a space
+    organization."""
     await custom_message(interaction, envs.SUBDOMAIN, is_private=True)
 
 
 @client.tree.command()
 async def ip(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about IP addresses used by a space
+    organization."""
     await custom_message(interaction, envs.IP, is_private=True)
 
 
 @client.tree.command()
 async def satellite(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about satellites of a space
+    organization."""
     await custom_message(interaction, envs.SATELLITE, is_private=True)
 
 
 @client.tree.command()
 async def taglaws(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information of potential laws and guidelines to
+    which a space organization is subject."""
     await custom_message(interaction, envs.TAGLAWS, is_private=True)
 
 
 @client.tree.command()
 async def weapons(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about space-related weapons."""
     await custom_message(interaction, envs.WEAPONS, is_private=True)
 
 
 @client.tree.command()
 async def financial(interaction: discord.Interaction) -> None:
-    """..."""
+    """Allows a user to get information about finance of a space
+    organization."""
     await custom_message(interaction, envs.FINANCIAL, is_private=True)
 
 
