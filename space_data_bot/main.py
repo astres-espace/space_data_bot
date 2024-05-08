@@ -22,13 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import json
 import aiohttp.web_response
 import discord
 import requests
 import aiohttp
-import tempfile
-from pathlib import Path
 from discord import app_commands
 
 from space_data_bot import envs, content, filter, utils
@@ -79,7 +76,6 @@ Endpoints commands accessible for everyone.
 """
 
 # HUGE PROBLEM ! THE TEMPFILE IS ON THE SAME SERVER FOR EVERYONE
-# Create dict with user mail as key and token as values ?
 # Ask for a user specific token location when connecting ?
 
 
@@ -95,44 +91,14 @@ async def login(interaction: discord.Interaction,
         "password": password
     }
 
-    result = requests.post(url, json=data)
-
-    if result.status_code != 200:
+    resp = requests.post(url, json=data)
+    if resp.status_code != 200:
         await interaction.response.send_message(content.LOG_ERROR,
                                                 ephemeral=True)
         return
 
-    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
     # save tokens in a file
-    with open(token_file, "w") as json_file:
-        json.dump(result.json(), json_file)
-
-    await interaction.response.send_message(content.LOG_SUCCESS,
-                                            ephemeral=True)
-
-
-@client.tree.command()
-@app_commands.describe(refresh="refresh type JSON web token")
-async def login_refresh(interaction: discord.Interaction, refresh: str
-                        ) -> None:
-    """Takes a refresh type JSON web token and returns an access type JSON web
-token if the refresh token is valid."""
-    url = f"{envs.API_ROOT}/{envs.TOKEN_REFRESH}/#post-object-form"
-    data = {
-        "refresh": refresh,
-    }
-
-    result = requests.post(url, json=data)
-
-    if result.status_code != 200:
-        await interaction.response.send_message(content.LOG_ERROR,
-                                                ephemeral=True)
-        return
-
-    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
-    # save tokens in a file
-    with open(token_file, "w") as json_file:
-        json.dump(result.json(), json_file)
+    utils.set_token(interaction.user.id, resp.json())
 
     await interaction.response.send_message(content.LOG_SUCCESS,
                                             ephemeral=True)
@@ -148,15 +114,15 @@ async def orgnamepublic(interaction: discord.Interaction,
 
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
-        result = requests.get(url)
+        resp = requests.get(url)
 
         # checks if error
-        if result.status_code != 200:
+        if resp.status_code != 200:
             await interaction.response.send_message(
-                f"Error {result.status_code}")
+                f"Error {resp.status_code}")
             return
 
-        companies = result.json().get("results", [])
+        companies = resp.json().get("results", [])
 
         # too much results
         if len(companies) > 5:
@@ -189,15 +155,15 @@ async def orgnamegpspublic(interaction: discord.Interaction,
     """GPS company locations"""
     if company_name:
         url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?orgname={company_name}"
-        result = requests.get(url)
+        resp = requests.get(url)
 
         # checks if error
-        if result.status_code != 200:
+        if resp.status_code != 200:
             await interaction.response.send_message(
-                f"Error {result.status_code}")
+                f"Error {resp.status_code}")
             return
 
-        companies = result.json().get("results", [])
+        companies = resp.json().get("results", [])
 
         # too much results
         if len(companies) > 5:
@@ -233,22 +199,22 @@ async def weaponspublic(
     """Basic information on all space weapons."""
 
     url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
-    result = requests.get(url)
+    resp = requests.get(url)
 
     # checks if error
-    if result.status_code != 200:
+    if resp.status_code != 200:
         await interaction.response.send_message(
-            f"Error {result.status_code}")
+            f"Error {resp.status_code}")
         return
 
     if name or vector_type:
         # filters
         data = []
         if name:
-            data += filter.request_filter(result, key="name", value=name)
+            data += filter.request_filter(resp, key="name", value=name)
 
         if vector_type:
-            by_vector = filter.request_filter(result, key="vectortype",
+            by_vector = filter.request_filter(resp, key="vectortype",
                                               value=vector_type)
             if name:
                 data += [elem for elem in by_vector if name in elem["name"]]
@@ -406,10 +372,40 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
 
     async with aiohttp.ClientSession() as session:
         if is_private:
-            headers = {"Authorization": f"JWT {utils.get_token()}"}
-            async with session.get(url, headers=headers) as resp:
-                await message_conditions(interaction, resp, url, is_data)
-        else:
+            user_id = interaction.user.id  # the id is used to find the user
+
+            token = utils.get_token(user_id)
+            if token == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
+                await interaction.response.send_message(content.LOG_INIT_ERROR,
+                                                        ephemeral=True)
+
+            elif token == envs.TOKEN_USER_ERROR_ID:  # no user account yet
+                await interaction.response.send_message(content.LOG_UNKNOWN,
+                                                        ephemeral=True)
+
+            else:  # try access token
+                headers = {"Authorization": f"JWT {token}"}
+                async with session.get(url, headers=headers) as resp:
+                    if resp.status == 200:  # access token is still ok
+                        await message_conditions(interaction,
+                                                 resp,
+                                                 url,
+                                                 is_data)
+
+                    else:  # token needs to be refreshed
+                        token_updated = utils.update_token(user_id)
+
+                        # try the request again
+                        headers = {
+                            "Authorization": f"JWT {token_updated}"
+                        }
+                        async with session.get(url, headers=headers) as resd:
+                            await message_conditions(interaction,
+                                                     resd,
+                                                     url,
+                                                     is_data)
+
+        else:  # is public
             async with session.get(url) as resp:
                 await message_conditions(interaction, resp, url, is_data)
 

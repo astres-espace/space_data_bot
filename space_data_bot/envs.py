@@ -23,6 +23,8 @@ SOFTWARE.
 """
 
 import os
+import tempfile
+from pathlib import Path
 
 
 # DISCORD ENV
@@ -35,7 +37,7 @@ CHANNEL_ID = os.getenv("SPACEDATA_CHANNEL_ID")
 # Do not edit these constants
 HOME_URL = "https://recon.space"
 API_ROOT = "https://api.recon.space/myapi"
-TOKEN_TEMP_FILE_STEM = "space_data_tokens.json"
+TOKEN_FILE = Path(tempfile.gettempdir()) / "space_data_tokens.json"
 
 # PUBLIC ENDPOINTS
 ORGNAMEPUBLIC = "orgnamepublic"
@@ -60,3 +62,6 @@ FINANCIAL = "financial"
 
 MAX_ITER_NUMBER = 5
 MAX_MESSAGE_LENGTH = 1980
+
+TOKEN_INIT_ERROR_ID = 0
+TOKEN_USER_ERROR_ID = 1

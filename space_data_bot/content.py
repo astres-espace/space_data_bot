@@ -37,6 +37,10 @@ Create an account first or check that you haven't made a mistake entering your
 login details.
 """
 LOG_UNKNOWN = f"Please log in or create an account on : {envs.HOME_URL}"
+LOG_INIT_ERROR = f"""
+The token file does not exist.
+{LOG_UNKNOWN}
+"""
 
 # ORGNAMEPUBLIC
 

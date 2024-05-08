@@ -22,50 +22,76 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from pathlib import Path
-import tempfile
-import json
 
+import json
+import requests
 from space_data_bot import envs
 
 
-def refresh_token(token: str):  # WIP
+def update_token(user_id: str):
     """Sends a request to refresh the token
-
-    Args:
-        token (str): the refresh token
-
-    Returns:
-        str: a new access token
     """
-    return token
+    token = get_token(user_id, refresh=True)
+
+    url = f"{envs.API_ROOT}/{envs.TOKEN_REFRESH}/#post-object-form"
+    data = {"refresh": token}
+
+    resp = requests.post(url, json=data)
+    if resp.status_code == 200:
+        resp_json = resp.json()
+        set_token(user_id, resp_json)
+        return resp_json["access"]
 
 
-def get_token() -> str:
+def get_token(user_id: str, refresh: bool = False) -> str:
     """Get access token from temporary files, refresh if necessary.
 
     Returns:
         str: the access token
     """
-    token_file = Path(tempfile.gettempdir()) / envs.TOKEN_TEMP_FILE_STEM
 
-    if not token_file.is_file():
-        print("The token file does not exist.")
-        return
+    if not envs.TOKEN_FILE.is_file():
+        return envs.TOKEN_INIT_ERROR_ID
 
-    with open(token_file, 'r') as file:
+    with open(envs.TOKEN_FILE, 'r') as file:
         content = json.load(file)
 
-        token_access = content.get("access", None)
+        if content.get(str(user_id)):
+            if refresh:
+                key = "refresh"
+            else:
+                key = "access"
+            token = content[str(user_id)][key]
+            return token
+        else:
+            return envs.TOKEN_USER_ERROR_ID
 
-        if not token_access:
-            token_refresh = content.get("refresh", None)
-            if not token_refresh:
-                print("The token file is empty.")
 
-            token_access = refresh_token(token_refresh)
+def set_token(user_id: str, credentials: dict) -> dict:
+    """Saves tokens to a temporary file on the server. To access tokens,
+    use the ID of the user requesting them
 
-        return token_access
+    Args:
+        user_id (str): The user's Discord ID
+        credentials (dict): the tokens as resp.json()
+
+    Returns:
+        dict: the file content
+    """
+    try:
+        with open(envs.TOKEN_FILE, "r+") as file:
+            content = json.load(file)
+            content[user_id] = credentials
+            file.seek(0)  # Go back at the beginning of the file to delete all
+            json.dump(content, file, indent=4)
+
+    except "file creation":
+        with open(envs.TOKEN_FILE, "w") as file:
+            content = {}
+            content[user_id] = credentials
+            json.dump(content, file, indent=4)
+
+    return content
 
 
 def crop(message: str) -> str:
