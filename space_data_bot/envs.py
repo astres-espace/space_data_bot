@@ -59,3 +59,4 @@ WEAPONS = "weapons"
 FINANCIAL = "financial"
 
 MAX_ITER_NUMBER = 5
+MAX_MESSAGE_LENGTH = 1980

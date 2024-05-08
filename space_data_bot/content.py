@@ -26,28 +26,6 @@ import json
 from space_data_bot import envs
 
 
-def basic_message(url: str) -> str:
-    return f"See your results here : {url}"
-
-
-def data_message(data: list) -> str:
-    """
-    Breaks down the result of a request and converts it into a Discord message
-    """
-
-    # The maximum length of a Discord message is 2000 characters.
-    if len(data) > 1990:
-        data = data[:1990] + "\n..."
-
-    message = f"""
-    ```json
-    {json.dumps(data, indent=4)}
-    ```
-    """
-
-    return message
-
-
 EMPTY = "Sorry, nothing matches your search..."
 
 # LOGIN
@@ -55,7 +33,8 @@ EMPTY = "Sorry, nothing matches your search..."
 LOG_SUCCESS = "You are successfully logged in!"
 LOG_ERROR = """
 Error!
-Create an account first or check that you haven't made a mistake entering your login details.
+Create an account first or check that you haven't made a mistake entering your
+login details.
 """
 LOG_UNKNOWN = f"Please log in or create an account on : {envs.HOME_URL}"
 
@@ -118,7 +97,8 @@ Here's a sample of what you can get with this command:
 ```
 **Click on this link to see all the companies:**
 {envs.API_ROOT}/{envs.WEAPONSPUBLIC}
-Try specifying the weapon's name or vector type you're looking for by retyping the command.
+Try specifying the weapon's name or vector type you're looking for by retyping
+the command.
 """
 
 WEAPONSPUBLIC_TOO_MUCH_DATA = """
@@ -166,3 +146,57 @@ def help_message():
 _These commands require you to be connected to recon.space._
 {_iter_help(HELP_PRIVATE_ENDPOINTS)}
 """
+
+
+def basic_message(url: str) -> str:
+    return f"See your results here : {url}"
+
+
+def data_message(data: list) -> str:
+    """
+    Breaks down the result of a request and converts it into a Discord message
+    of 1974 characters.
+    """
+
+    # The maximum length of a Discord message is 2000 characters.
+    # Put a lower limit in case of title
+    data = conform_data(data)
+    message = f"""
+    ```json
+    {json.dumps(data, indent=4)}
+    """
+    if len(message) > envs.MAX_MESSAGE_LENGTH:
+        message = message[:envs.MAX_MESSAGE_LENGTH]
+        message += "\n```\n_cropped..._"
+    else:
+        message += "```"
+
+    return message
+
+
+def conform_data(data: list):
+    if isinstance(data, dict):  # we need a list at the end
+        data = data.get("results")
+
+    str_data = str(data)  # convert to str to calculate length
+
+    # remove nulls
+    str_data = str_data.replace('null', '"null"')
+
+    # maybe it is useless because done twice
+    if len(str_data) > envs.MAX_MESSAGE_LENGTH:
+        str_data = str_data[:envs.MAX_MESSAGE_LENGTH]
+
+        while str_data and str_data[-1] != "}" and str_data[-1] != "]":
+            str_data = str_data[:-1]
+
+        try:
+            return eval(str_data + "]")  # that is why we need a list
+        except "Failed to conform":
+            return str_data
+    else:
+        return data
+
+
+if __name__ == "__main__":
+    pass

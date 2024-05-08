@@ -23,8 +23,10 @@ SOFTWARE.
 """
 
 import json
+import aiohttp.web_response
 import discord
 import requests
+import aiohttp
 import tempfile
 from pathlib import Path
 from discord import app_commands
@@ -293,7 +295,7 @@ async def records(interaction: discord.Interaction) -> None:
 @client.tree.command()
 async def tag(interaction: discord.Interaction) -> None:
     """The identifier for each category"""
-    await custom_message(interaction, envs.TAG)
+    await custom_message(interaction, envs.TAG, is_data=True)
 
 
 """
@@ -361,8 +363,35 @@ async def financial(interaction: discord.Interaction) -> None:
     await custom_message(interaction, envs.FINANCIAL, is_private=True)
 
 
+async def message_conditions(interaction: discord.Interaction,
+                             resp: aiohttp.web_response, url: str,
+                             is_data: bool) -> None:
+    """Sends a message depending on the conditions chosen:
+    whether it's in the form of a coded message or the basic message
+    with the url.
+
+    Args:
+        interaction (discord.Interaction): the Discord context
+        resp (aiohttp.web_response): The request response
+        url (str): The requested endpoint URL
+        is_data (bool): message's form
+    """
+    if resp.status == 200:
+        if is_data:
+            message = content.data_message(await resp.json())
+            await interaction.response.send_message(message, ephemeral=True)
+        else:
+            await interaction.response.send_message(
+                utils.crop(content.basic_message(url)),
+                ephemeral=True)
+    else:
+        await interaction.response.send_message(
+            utils.crop(content.LOG_UNKNOWN),
+            ephemeral=True)
+
+
 async def custom_message(interaction: discord.Interaction, endpoint: str,
-                         is_private: bool = False):
+                         is_private: bool = False, is_data: bool = True):
     """Sends a message in Discord that redirects to the requested URL.
 
     Args:
@@ -370,24 +399,20 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
         endpoint (str): Recon.space endpoint to add in the URL
         is_private (bool, optional): Checks if the user is logged in,
             otherwise tells the user to log in. Defaults to False.
+        is_data (bool, optional): Message as a coded or basic URL message.
     """
+
     url = f"{envs.API_ROOT}/{endpoint}"
 
-    if is_private:  # must be connected
-        headers = {"Authorization": f"JWT {utils.get_token()}"}
-        result = requests.get(url, headers=headers)
+    async with aiohttp.ClientSession() as session:
+        if is_private:
+            headers = {"Authorization": f"JWT {utils.get_token()}"}
+            async with session.get(url, headers=headers) as resp:
+                await message_conditions(interaction, resp, url, is_data)
+        else:
+            async with session.get(url) as resp:
+                await message_conditions(interaction, resp, url, is_data)
 
-        if result.status_code == 200:  # user is connected
-            message = content.data_message(result.json())
-            await interaction.response.send_message(message, ephemeral=True)
-
-        else:  # user is not connected
-            await interaction.response.send_message(content.LOG_UNKNOWN,
-                                                    ephemeral=True)
-
-    else:  # public endpoint
-        await interaction.response.send_message(content.basic_message(url),
-                                                ephemeral=True)
 
 if __name__ == "__main__":
     client.run(envs.BOT_TOKEN)
