@@ -163,7 +163,13 @@ def data_message(data: list) -> str:
 
     # The maximum length of a Discord message is 2000 characters.
     # Put a lower limit in case of title
-    data = conform_data(data)
+    # data = conform_data(data)
+    try:
+        data.pop("next")
+        data.pop("previous")
+    except:
+        pass
+
     message = f"""
     ```json
     {json.dumps(data, indent=4)}

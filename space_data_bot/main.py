@@ -340,7 +340,7 @@ async def financial(interaction: discord.Interaction) -> None:
 
 
 async def message_conditions(interaction: discord.Interaction,
-                             resp: aiohttp.web_response, url: str,
+                             resp: requests.Response, url: str,
                              is_data: bool) -> None:
     """Sends a message depending on the conditions chosen:
     whether it's in the form of a coded message or the basic message
@@ -352,9 +352,9 @@ async def message_conditions(interaction: discord.Interaction,
         url (str): The requested endpoint URL
         is_data (bool): message's form
     """
-    if resp.status == 200:
+    if resp.status_code == 200:
         if is_data:
-            message = content.data_message(await resp.json())
+            message = content.data_message(resp.json())
             await interaction.response.send_message(message, ephemeral=True)
         else:
             await interaction.response.send_message(
@@ -380,44 +380,36 @@ async def custom_message(interaction: discord.Interaction, endpoint: str,
 
     url = f"{envs.API_ROOT}/{endpoint}"
 
-    async with aiohttp.ClientSession() as session:
-        if is_private:
-            user_id = interaction.user.id  # the id is used to find the user
+    if is_private:
+        user_id = interaction.user.id  # the id is used to find the user
+        token = utils.get_token(user_id)
 
-            token = utils.get_token(user_id)
-            if token == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
-                await interaction.response.send_message(content.LOG_INIT_ERROR,
-                                                        ephemeral=True)
+        if token == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
+            await interaction.response.send_message(content.LOG_INIT_ERROR,
+                                                    ephemeral=True)
 
-            elif token == envs.TOKEN_USER_ERROR_ID:  # no user account yet
-                await interaction.response.send_message(content.LOG_UNKNOWN,
-                                                        ephemeral=True)
+        elif token == envs.TOKEN_USER_ERROR_ID:  # no user account yet
+            await interaction.response.send_message(content.LOG_UNKNOWN,
+                                                    ephemeral=True)
 
-            else:  # try access token
-                headers = {"Authorization": f"JWT {token}"}
-                async with session.get(url, headers=headers) as resp:
-                    if resp.status == 200:  # access token is still ok
-                        await message_conditions(interaction,
-                                                 resp,
-                                                 url,
-                                                 is_data)
-
-                    else:  # token needs to be refreshed
-                        token_updated = utils.update_token(user_id)
-
-                        # try the request again
-                        headers = {
-                            "Authorization": f"JWT {token_updated}"
-                        }
-                        async with session.get(url, headers=headers) as resd:
-                            await message_conditions(interaction,
-                                                     resd,
-                                                     url,
-                                                     is_data)
-
-        else:  # is public
-            async with session.get(url) as resp:
+        else:  # try access token
+            headers = {"Authorization": f"JWT {token}"}
+            resp = requests.get(url, headers=headers)
+            if resp.status_code == 200:  # access token is still ok
                 await message_conditions(interaction, resp, url, is_data)
+
+            else:  # token needs to be refreshed
+                token_updated = utils.update_token(user_id)
+                # try the request again
+                headers = {
+                    "Authorization": f"JWT {token_updated}"
+                }
+                resp = requests.get(url, headers=headers)
+                await message_conditions(interaction, resp, url, is_data)
+
+    else:  # is public
+        resp = requests.get(url)
+        await message_conditions(interaction, resp, url, is_data)
 
 
 if __name__ == "__main__":
