@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
+import os
 import json
 import requests
 from space_data_bot import envs
@@ -78,20 +78,16 @@ def set_token(user_id: str, credentials: dict) -> dict:
     Returns:
         dict: the file content
     """
-    try:
-        with open(envs.TOKEN_FILE, "r+") as file:
-            content = json.load(file)
-            content[user_id] = credentials
-            file.seek(0)  # Go back at the beginning of the file to delete all
-            json.dump(content, file, indent=4)
-
-    except "file creation":
+    if not os.path.exists(envs.TOKEN_FILE):
         with open(envs.TOKEN_FILE, "w") as file:
-            content = {}
-            content[user_id] = credentials
-            json.dump(content, file, indent=4)
+            json.dump({}, file)
 
-    return content
+    with open(envs.TOKEN_FILE, "r+") as file:
+        content = json.load(file)
+        content[user_id] = credentials
+        file.seek(0)
+        json.dump(content, file, indent=4)
+        return content
 
 
 def crop(message: str) -> str:

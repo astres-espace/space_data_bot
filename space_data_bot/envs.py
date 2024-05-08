@@ -43,8 +43,9 @@ TOKEN_FILE = Path(tempfile.gettempdir()) / "space_data_tokens.json"
 ORGNAMEPUBLIC = "orgnamepublic"
 ORGNAMEGPSPUBLIC = "orgnamegpspublic"  # filter
 WEAPONSPUBLIC = "weaponspublic"
-TOKEN = "token"
-TOKEN_REFRESH = "token/refresh"
+TOKEN = "connect"
+TOKEN_REFRESH = "refresh"
+REGISTER = "register"
 RECORDS = "records"
 TAG = "tag"
 
