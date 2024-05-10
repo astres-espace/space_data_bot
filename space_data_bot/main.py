@@ -154,7 +154,9 @@ async def records(interaction: discord.Interaction) -> None:
 @client.tree.command()
 async def tag(interaction: discord.Interaction) -> None:
     """Allows a user to get all tags available for filtering purposes."""
-    await custom_message(interaction, envs.TAG, is_data=True)
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.tag()
+    await interaction.followup.send(message, ephemeral=True)
 
 
 """
