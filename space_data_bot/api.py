@@ -35,22 +35,70 @@ class SpaceDataApi:
         url += f"/?{query}"
         return requests.get(url)
 
-    def orgnamepublic(self, name: str = "", tags: str = "") -> str:
+    def orgnamepublic(self, orgname: str = "", tags: str = "") -> str:
+        """Allows a user to get information about space organizations
+        (50% of DB content). (GET)
+
+        Args:
+            orgname (str, optional): The name of the organization.
+            tags (str, optional): some tags.
+
+        Returns:
+            str: Results with MD syntax
+        """
         url = f"{self._url}/{envs.ORGNAMEPUBLIC}"
 
-        if name:
-            resp = self._filter_request(url, {"orgname": name})
+        if orgname:
+            resp = self._filter_request(url, {"orgname": orgname})
 
         elif tags:
             resp = self._filter_request(url, {"tags": tags})
 
-        elif name and tags:
-            resp = self._filter_request(url, {"orgname": name, "tags": tags})
+        elif orgname and tags:
+            resp = self._filter_request(url,
+                                        {"orgname": orgname, "tags": tags})
 
         else:
             return content.ORGNAME_DEFAULT
 
         data = resp.json()["results"]
+
+        if not data:  # no result
+            return content.EMPTY
+
+        elif len(data) > envs.MAX_ITER_NUMBER:  # too much results
+            return content.too_much_data(data, "organisationname")
+
+        else:  # sends requested info
+            return content.data_message(data)
+
+    def orgnamegpspublic(self, orgname: str = "", tags: str = "") -> str:
+        """Allows a user to get information about the localization of space
+        organizations (33% of DB content). (GET)
+
+        Args:
+            orgname (str, optional): The name of the organization.
+            tags (str, optional): some tags.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.ORGNAMEGPSPUBLIC}"
+
+        if orgname:
+            resp = self._filter_request(url, {"orgname": orgname})
+
+        elif tags:
+            resp = self._filter_request(url, {"tags": tags})
+
+        elif orgname and tags:
+            resp = self._filter_request(url,
+                                        {"orgname": orgname, "tags": tags})
+
+        else:
+            return content.ORGNAMEGPS_DEFAULT
+
+        data = resp.json()
 
         if not data:  # no result
             return content.EMPTY

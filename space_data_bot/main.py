@@ -107,57 +107,29 @@ async def connect(interaction: discord.Interaction,
 
 
 @client.tree.command()
-@app_commands.describe(name="The name of the organization",
+@app_commands.describe(orgname="The name of the organization",
                        tags="tags=Agency or tags=Agency,Manufacturer")
 async def orgnamepublic(
-    interaction: discord.Interaction, name: str = "", tags: str = ""
+    interaction: discord.Interaction, orgname: str = "", tags: str = ""
 ) -> None:
     """Allows a user to get information about space organizations
     (50% of DB content)."""
     await interaction.response.defer(ephemeral=True)
-    message = space_data.orgnamepublic(name, tags)
+    message = space_data.orgnamepublic(orgname, tags)
     await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
-@app_commands.describe(company_name="The name of the company")
-async def orgnamegpspublic(interaction: discord.Interaction,
-                           company_name: str = "") -> None:
+@app_commands.describe(orgname="The name of the organization",
+                       tags="tags=Agency or tags=Agency,Manufacturer")
+async def orgnamegpspublic(
+    interaction: discord.Interaction, orgname: str = "", tags: str = ""
+) -> None:
     """Allows a user to get information about the localization of space
     organizations (33% of DB content)."""
-    if company_name:
-        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?orgname={company_name}"
-        resp = utils.get_request(url)
-
-        # checks if error
-        if resp.status_code != 200:
-            await interaction.response.send_message(
-                f"Error {resp.status_code}")
-            return
-
-        companies = resp.json().get("results", [])
-
-        # too much results
-        if len(companies) > 5:
-            message = content.TOO_MUCH_DATA
-            for org in companies:
-                message += f"\n_{org.get('organisationname', '')}_"
-
-            await interaction.response.send_message(
-                utils.crop(message),
-                ephemeral=True)
-
-        # sends info about requested company
-        else:
-            print(companies)
-            await interaction.response.send_message(
-                utils.crop(content.data_message(companies)),
-                ephemeral=True)
-
-    else:
-        await interaction.response.send_message(
-            content.ORGNAMEGPS_DEFAULT,
-            ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.orgnamegpspublic(orgname, tags)
+    await interaction.followup.send(message, ephemeral=True)
 
 # ---------------------------
 
