@@ -192,9 +192,20 @@ async def orgname(interaction: discord.Interaction, orgname: str = "",
 
 
 @client.tree.command()
-async def orgnamegps(interaction: discord.Interaction) -> None:
+@app_commands.describe(orgname="The name of the organization",
+                       tags="tags=Agency or tags=Agency,Manufacturer")
+async def orgnamegps(interaction: discord.Interaction, orgname: str = "",
+                     tags: str = "") -> None:
     """Allows a user to get information about space organizations."""
-    await custom_message(interaction, envs.ORGNAMEGPS, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.orgnamegps(token, orgname=orgname, tags=tags)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.orgnamegps(token, orgname=orgname, tags=tags)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
@@ -219,10 +230,33 @@ async def ip(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command()
-async def satellite(interaction: discord.Interaction) -> None:
+@app_commands.describe(name="eg: Tiang",
+                       country_operator="eg: China",
+                       orbit="eg: GEO",
+                       launch_vehicle="eg: Falcon"
+                       )
+async def satellite(interaction: discord.Interaction, name: str = "",
+                    country_operator: str = "", orbit: str = "",
+                    launch_vehicle: str = "") -> None:
     """Allows a user to get information about satellites of a space
     organization."""
-    await custom_message(interaction, envs.SATELLITE, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.satellite(token,
+                                   name=name,
+                                   country_operator=country_operator,
+                                   orbit=orbit,
+                                   launch_vehicle=launch_vehicle)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.satellite(token,
+                                       name=name,
+                                       country_operator=country_operator,
+                                       orbit=orbit,
+                                       launch_vehicle=launch_vehicle)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()

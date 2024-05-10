@@ -252,3 +252,57 @@ class SpaceDataApi:
             return content.data_message(resp.json())
         else:
             return content.LOG_ERROR
+
+    def orgnamegps(self, token: str, orgname: str = "",
+                   tags: str = "") -> str:
+        """Allows a user to get information about space organizations.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.ORGNAME}"
+        headers = {"Authorization": f"JWT {token}"}
+
+        filters = {}
+        if orgname:
+            filters["orgname"] = orgname
+
+        if tags:
+            filters["tags"] = tags
+
+        resp = self._get(url, headers=headers, filters=filters)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
+
+    def satellite(self, token: str, name: str = "",
+                  country_operator: str = "", orbit: str = "",
+                  launch_vehicle: str = "") -> str:
+        """Allows a user to get information about satellites of a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.ORGNAME}"
+        headers = {"Authorization": f"JWT {token}"}
+
+        filters = {}
+        if name:
+            filters["satellitename"] = name
+
+        if country_operator:
+            filters["satellitecountryoperator"] = country_operator
+
+        if orbit:
+            filters["satelliteorbit"] = orbit
+
+        if launch_vehicle:
+            filters["satellitelaunchvehicle"] = launch_vehicle
+
+        resp = self._get(url, headers=headers, filters=filters)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
