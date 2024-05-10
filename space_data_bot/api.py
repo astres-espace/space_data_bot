@@ -30,13 +30,26 @@ class SpaceDataApi:
     def __init__(self) -> None:
         self._url = envs.API_ROOT
 
-    def _get_request(self, url: str) -> requests.Response:
-        return requests.get(url)
+    def _get(self, url: str, headers: dict = None,
+             filters: dict = None) -> requests.Response:
+        """Makes a customized GET request
 
-    def _filter_request(self, url: str, filters: dict, ) -> requests.Response:
-        query = "&".join([f"{k}={v}" for k, v in filters.items()])
-        url += f"/?{query}"
-        return self._get_request(url)
+        Args:
+            url (str): the request url
+            headers (dict, optional): token and additionals. Defaults to None.
+            filters (dict, optional): search filters. Defaults to None.
+
+        Returns:
+            requests.Response
+        """
+        if filters:
+            query = "&".join([f"{k}={v}" for k, v in filters.items()])
+            url += f"/?{query}"
+
+        if headers:
+            return requests.get(url, headers=headers)
+
+        return requests.get(url)
 
     def orgnamepublic(self, orgname: str = "", tags: str = "") -> str:
         """Allows a user to get information about space organizations
@@ -52,14 +65,13 @@ class SpaceDataApi:
         url = f"{self._url}/{envs.ORGNAMEPUBLIC}"
 
         if orgname:
-            resp = self._filter_request(url, {"orgname": orgname})
+            resp = self._get(url, filters={"orgname": orgname})
 
         elif tags:
-            resp = self._filter_request(url, {"tags": tags})
+            resp = self._get(url, filters={"tags": tags})
 
         elif orgname and tags:
-            resp = self._filter_request(url,
-                                        {"orgname": orgname, "tags": tags})
+            resp = self._get(url, filters={"orgname": orgname, "tags": tags})
 
         else:
             return content.ORGNAME_DEFAULT
@@ -89,14 +101,13 @@ class SpaceDataApi:
         url = f"{self._url}/{envs.ORGNAMEGPSPUBLIC}"
 
         if orgname:
-            resp = self._filter_request(url, {"orgname": orgname})
+            resp = self._get(url, filters={"orgname": orgname})
 
         elif tags:
-            resp = self._filter_request(url, {"tags": tags})
+            resp = self._get(url, filters={"tags": tags})
 
         elif orgname and tags:
-            resp = self._filter_request(url,
-                                        {"orgname": orgname, "tags": tags})
+            resp = self._get(url, filters={"orgname": orgname, "tags": tags})
 
         else:
             return content.ORGNAMEGPS_DEFAULT
@@ -120,7 +131,7 @@ class SpaceDataApi:
             str: Results with MD syntax
         """
         url = f"{self._url}/{envs.WEAPONSPUBLIC}"
-        data = self._get_request(url).json()
+        data = self._get(url).json()
 
         if not data:  # no result
             return content.EMPTY
@@ -134,7 +145,7 @@ class SpaceDataApi:
             str: Results with MD syntax
         """
         url = f"{self._url}/{envs.RECORDS}"
-        data = self._get_request(url).json()
+        data = self._get(url).json()
 
         if not data:  # no result
             return content.EMPTY
@@ -148,7 +159,7 @@ class SpaceDataApi:
             str: Results with MD syntax
         """
         url = f"{self._url}/{envs.TAG}"
-        data = self._get_request(url).json()
+        data = self._get(url).json()
 
         if not data:  # no result
             return content.EMPTY
