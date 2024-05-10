@@ -58,10 +58,21 @@ class SpaceDataApi:
         return requests.post(url, json=data)
 
     def get_token(self, id: str = 0, type: str = "access") -> str:
-        pass
+        if self._tokens.get(id, None):
+            return self._tokens[id].get(type, "")
 
     def set_token(self, id: str, data: dict) -> None:
         self._tokens[id] = data
+
+    def update_token(self, id: str) -> str:
+        data = {"refresh": self.get_token(id, type="refresh")}
+        resp = self._post(f"{self._url}/{envs.TOKEN_REFRESH}", data)
+
+        if resp.status_code == 200:
+            new_data = resp.json()
+            self.set_token(id, new_data)
+
+            return new_data["access"]
 
     def connect(self, email: str, password: str, id: str = 0) -> dict:
         url = f"{self._url}/{envs.TOKEN}"
@@ -196,3 +207,18 @@ class SpaceDataApi:
             return content.EMPTY
 
         return content.data_message(data)
+
+    def myaccount(self, token: str) -> str:
+        """Once logged in, you can check your account details.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.ACCOUNT}"
+        headers = {"Authorization": f"JWT {token}"}
+
+        resp = self._get(url, headers=headers)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR

@@ -124,8 +124,6 @@ async def weaponspublic(interaction: discord.Interaction) -> None:
     message = space_data.weaponspublic()
     await interaction.followup.send(message, ephemeral=True)
 
-# ---------------------------
-
 
 @client.tree.command()
 async def records(interaction: discord.Interaction) -> None:
@@ -151,7 +149,15 @@ Endpoints accessible for connected users.
 @client.tree.command()
 async def myaccount(interaction: discord.Interaction) -> None:
     """Once logged in, you can check your account details."""
-    await custom_message(interaction, envs.ACCOUNT, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.myaccount(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.myaccount(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
