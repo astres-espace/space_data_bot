@@ -199,7 +199,8 @@ def conform_data(data: list):
 
 
 def too_much_data(data: list, filter: str) -> str:
-    """Creates a message that iterates all results according to a filter to show that there are too many.
+    """Creates a message that iterates all results according to a filter to
+    show that there are too many.
 
     Args:
         data (list): the request results

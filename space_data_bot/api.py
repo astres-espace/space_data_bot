@@ -106,18 +106,17 @@ class SpaceDataApi:
         """
         url = f"{self._url}/{envs.ORGNAMEPUBLIC}"
 
+        filters = {}
         if orgname:
-            resp = self._get(url, filters={"orgname": orgname})
+            filters["orgname"] = orgname
 
-        elif tags:
-            resp = self._get(url, filters={"tags": tags})
+        if tags:
+            filters["tags"] = tags
 
-        elif orgname and tags:
-            resp = self._get(url, filters={"orgname": orgname, "tags": tags})
-
-        else:
+        if not filters:
             return content.ORGNAME_DEFAULT
 
+        resp = self._get(url, filters=filters)
         data = resp.json()["results"]
 
         if not data:  # no result
@@ -142,19 +141,18 @@ class SpaceDataApi:
         """
         url = f"{self._url}/{envs.ORGNAMEGPSPUBLIC}"
 
+        filters = {}
         if orgname:
-            resp = self._get(url, filters={"orgname": orgname})
+            filters["orgname"] = orgname
 
-        elif tags:
-            resp = self._get(url, filters={"tags": tags})
+        if tags:
+            filters["tags"] = tags
 
-        elif orgname and tags:
-            resp = self._get(url, filters={"orgname": orgname, "tags": tags})
+        if not filters:
+            return content.ORGNAME_DEFAULT
 
-        else:
-            return content.ORGNAMEGPS_DEFAULT
-
-        data = resp.json()
+        resp = self._get(url, filters=filters)
+        data = resp.json()["results"]
 
         if not data:  # no result
             return content.EMPTY
@@ -218,6 +216,38 @@ class SpaceDataApi:
         headers = {"Authorization": f"JWT {token}"}
 
         resp = self._get(url, headers=headers)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
+
+    def orgname(self, token: str, orgname: str = "",
+                tags: str = "", has_satellite_named: str = "",
+                has_satellite_operated_by_country: str = "") -> str:
+        """Allows a user to get information about space organizations.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.ORGNAME}"
+        headers = {"Authorization": f"JWT {token}"}
+
+        filters = {}
+        if orgname:
+            filters["orgname"] = orgname
+
+        if tags:
+            filters["tags"] = tags
+
+        if has_satellite_named:
+            filters["hassatellitenamed"] = has_satellite_named
+
+        if has_satellite_operated_by_country:
+            filters[
+                "hassatelliteoperatedbycountry"
+            ] = has_satellite_operated_by_country
+
+        resp = self._get(url, headers=headers, filters=filters)
         if resp.status_code == 200:
             return content.data_message(resp.json())
         else:

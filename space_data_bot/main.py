@@ -161,9 +161,34 @@ async def myaccount(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command()
-async def orgname(interaction: discord.Interaction) -> None:
+@app_commands.describe(orgname="The name of the organization",
+                       tags="tags=Agency or tags=Agency,Manufacturer",
+                       satellite_named="eg : Oneweb",
+                       satellite_operated_by_country="eg: Brazil"
+                       )
+async def orgname(interaction: discord.Interaction, orgname: str = "",
+                  tags: str = "", satellite_named: str = "",
+                  satellite_operated_by_country: str = "") -> None:
     """Allows a user to get information about space organizations."""
-    await custom_message(interaction, envs.ORGNAME, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.orgname(
+        token,
+        orgname=orgname,
+        tags=tags,
+        has_satellite_named=satellite_named,
+        has_satellite_operated_by_country=satellite_operated_by_country)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.orgname(
+            token,
+            orgname=orgname,
+            tags=tags,
+            has_satellite_named=satellite_named,
+            has_satellite_operated_by_country=satellite_operated_by_country)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
