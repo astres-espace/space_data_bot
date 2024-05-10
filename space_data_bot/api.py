@@ -30,10 +30,13 @@ class SpaceDataApi:
     def __init__(self) -> None:
         self._url = envs.API_ROOT
 
+    def _get_request(self, url: str) -> requests.Response:
+        return requests.get(url)
+
     def _filter_request(self, url: str, filters: dict, ) -> requests.Response:
         query = "&".join([f"{k}={v}" for k, v in filters.items()])
         url += f"/?{query}"
-        return requests.get(url)
+        return self._get_request(url)
 
     def orgnamepublic(self, orgname: str = "", tags: str = "") -> str:
         """Allows a user to get information about space organizations
@@ -108,3 +111,20 @@ class SpaceDataApi:
 
         else:  # sends requested info
             return content.data_message(data)
+
+    def weaponspublic(self) -> str:
+        """Allows a user to get information about space-related weapons
+        (not all details). (GET)
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.WEAPONSPUBLIC}"
+
+        resp = self._get_request(url)
+        data = resp.json()
+
+        if not data:  # no result
+            return content.EMPTY
+
+        return content.data_message(data)

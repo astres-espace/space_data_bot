@@ -25,7 +25,7 @@ SOFTWARE.
 import discord
 from discord import app_commands
 
-from space_data_bot import envs, content, filter, utils, api
+from space_data_bot import envs, content, utils
 from space_data_bot.api import SpaceDataApi
 
 
@@ -131,65 +131,14 @@ async def orgnamegpspublic(
     message = space_data.orgnamegpspublic(orgname, tags)
     await interaction.followup.send(message, ephemeral=True)
 
-# ---------------------------
-
 
 @client.tree.command()
-@app_commands.describe(name="The name of the weapon (eg: Tsyklon)",
-                       vector_type="The vector type (eg: ASAT kinetic)")
-async def weaponspublic(
-    interaction: discord.Interaction, name: str = "", vector_type: str = ""
-) -> None:
+async def weaponspublic(interaction: discord.Interaction) -> None:
     """Allows a user to get information about space-related weapons
     (not all details)."""
-
-    url = f"{envs.API_ROOT}/{envs.WEAPONSPUBLIC}"
-    resp = utils.get_request(url)
-
-    # checks if error
-    if resp.status_code != 200:
-        await interaction.response.send_message(
-            f"Error {resp.status_code}")
-        return
-
-    if name or vector_type:
-        # filters
-        data = []
-        if name:
-            data += filter.request_filter(resp, key="name", value=name)
-
-        if vector_type:
-            by_vector = filter.request_filter(resp, key="vectortype",
-                                              value=vector_type)
-            if name:
-                data += [elem for elem in by_vector if name in elem["name"]]
-            else:
-                data += by_vector
-
-        # no result
-        if not data:
-            await interaction.response.send_message(content.EMPTY,
-                                                    ephemeral=True)
-
-        # too much results
-        elif len(data) > envs.MAX_ITER_NUMBER:
-            message = content.TOO_MUCH_DATA
-            for elem in data:
-                message += f"\n_{elem.get('name', '')}_"
-
-            await interaction.response.send_message(utils.crop(message),
-                                                    ephemeral=True)
-
-        # sends info about requested company
-        else:
-            await interaction.response.send_message(
-                content.data_message(data),
-                ephemeral=True)
-
-    # no argument specified
-    else:
-        await interaction.response.send_message(content.WEAPONS_DEFAULT,
-                                                ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.weaponspublic()
+    await interaction.followup.send(message, ephemeral=True)
 
 # ---------------------------
 
