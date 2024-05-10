@@ -260,7 +260,7 @@ class SpaceDataApi:
         Returns:
             str: Results with MD syntax
         """
-        url = f"{self._url}/{envs.ORGNAME}"
+        url = f"{self._url}/{envs.ORGNAMEGPS}"
         headers = {"Authorization": f"JWT {token}"}
 
         filters = {}
@@ -285,7 +285,7 @@ class SpaceDataApi:
         Returns:
             str: Results with MD syntax
         """
-        url = f"{self._url}/{envs.ORGNAME}"
+        url = f"{self._url}/{envs.SATELLITE}"
         headers = {"Authorization": f"JWT {token}"}
 
         filters = {}
