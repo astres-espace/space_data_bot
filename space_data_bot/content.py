@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 import json
-from space_data_bot import envs
+from space_data_bot import envs, utils
 
 
 EMPTY = "Sorry, nothing matches your search..."
@@ -196,6 +196,20 @@ def conform_data(data: list):
             return str_data
     else:
         return data
+
+
+def too_much_data(data: list, filter: str) -> str:
+    """Creates a message that iterates all results according to a filter to show that there are too many.
+
+    Args:
+        data (list): the request results
+        filter (str): dictionary key to filter results
+    """
+    message = TOO_MUCH_DATA
+    for elem in data:
+        message += f"\n_{elem.get(filter, '')}_"
+
+    return utils.crop(message)
 
 
 if __name__ == "__main__":

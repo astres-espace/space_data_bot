@@ -106,6 +106,12 @@ def get_request(url: str) -> requests.Response:
     return requests.get(url)
 
 
+def filter_request(url: str, filters: dict) -> requests.Response:
+    query = "&".join([f"{k}={v}" for k, v in filters.items()])
+    url += f"/?{query}"
+    return requests.get(url)
+
+
 def crop(message: str) -> str:
     """Crops a Discord message if its length is higher than 2000
 

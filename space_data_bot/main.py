@@ -25,7 +25,8 @@ SOFTWARE.
 import discord
 from discord import app_commands
 
-from space_data_bot import envs, content, filter, utils
+from space_data_bot import envs, content, filter, utils, api
+from space_data_bot.api import SpaceDataApi
 
 
 GUILD_ID = discord.Object(id=envs.GUILD_ID)
@@ -54,6 +55,7 @@ class SpaceDataClient(discord.Client):
 
 intents = discord.Intents.default()
 client = SpaceDataClient(intents=intents)
+space_data = SpaceDataApi()
 
 
 @client.event
@@ -105,46 +107,16 @@ async def connect(interaction: discord.Interaction,
 
 
 @client.tree.command()
-@app_commands.describe(company_name="The name of the organization")
-async def orgnamepublic(interaction: discord.Interaction,
-                        company_name: str = "") -> None:
+@app_commands.describe(name="The name of the organization",
+                       tags="tags=Agency or tags=Agency,Manufacturer")
+async def orgnamepublic(
+    interaction: discord.Interaction, name: str = "", tags: str = ""
+) -> None:
     """Allows a user to get information about space organizations
     (50% of DB content)."""
-
-    if company_name:
-        url = f"{envs.API_ROOT}/{envs.ORGNAMEPUBLIC}/?search={company_name}"
-        resp = utils.get_request(url)
-
-        # checks if error
-        if resp.status_code != 200:
-            await interaction.response.send_message(
-                f"Error {resp.status_code}")
-            return
-
-        companies = resp.json().get("results", [])
-
-        # too much results
-        if len(companies) > 5:
-            message = content.ORGNAMEPUBLIC_TOO_MUCH_ORGS
-            for org in companies:
-                message += f"\n_{org.get('organisationname', '')}_"
-
-            await interaction.response.send_message(
-                utils.crop(message),
-                ephemeral=True)
-
-        # sends info about requested company
-        else:
-            await interaction.response.send_message(
-                content.data_message(companies),
-                ephemeral=True)
-
-    # if no company is specified
-    else:
-        await interaction.response.send_message(content.ORGNAME_DEFAULT,
-                                                ephemeral=True)
-
-# ---------------------------
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.orgnamepublic(name, tags)
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
