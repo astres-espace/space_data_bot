@@ -56,6 +56,22 @@ class SpaceDataApi:
         url += "/#post-object-form"
 
         return requests.post(url, json=data)
+    
+    def _pack_get(self, token: str, endpoint: str) -> str:
+        """Allows a user to get information about domains owned by a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{endpoint}"
+        headers = {"Authorization": f"JWT {token}"}
+
+        resp = self._get(url, headers=headers)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
     def get_token(self, id: str = 0, type: str = "access") -> str:
         if self._tokens.get(id, None):
@@ -306,3 +322,56 @@ class SpaceDataApi:
             return content.data_message(resp.json())
         else:
             return content.LOG_ERROR
+
+    def domain(self, token: str) -> str:
+        """Allows a user to get information about domains owned by a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.DOMAIN)
+
+    def subdomain(self, token: str) -> str:
+        """Allows a user to get information about sub-domains used by a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.SUBDOMAIN)
+
+    def ip(self, token: str) -> str:
+        """Allows a user to get information about IP addresses used by a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.IP)
+
+    def taglaws(self, token: str) -> str:
+        """Allows a user to get information of laws and guidelines to which a
+        space organization is subject.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.TAGLAWS)
+
+    def weapons(self, token: str) -> str:
+        """Allows a user to get information about space-related weapons.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.WEAPONS)
+
+    def financial(self, token: str) -> str:
+        """Allows a user to get information about finance of a space
+        organization.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        return self._pack_get(token, envs.FINANCIAL)

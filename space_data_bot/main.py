@@ -25,7 +25,7 @@ SOFTWARE.
 import discord
 from discord import app_commands
 
-from space_data_bot import envs, content, utils
+from space_data_bot import envs, content
 from space_data_bot.api import SpaceDataApi
 
 
@@ -92,7 +92,7 @@ async def connect(interaction: discord.Interaction,
 
 @client.tree.command()
 @app_commands.describe(orgname="The name of the organization",
-                       tags="tags=Agency or tags=Agency,Manufacturer")
+                       tags="eg: tags=Agency or tags=Agency,Manufacturer")
 async def orgnamepublic(
     interaction: discord.Interaction, orgname: str = "", tags: str = ""
 ) -> None:
@@ -105,7 +105,7 @@ async def orgnamepublic(
 
 @client.tree.command()
 @app_commands.describe(orgname="The name of the organization",
-                       tags="tags=Agency or tags=Agency,Manufacturer")
+                       tags="eg: tags=Agency or tags=Agency,Manufacturer")
 async def orgnamegpspublic(
     interaction: discord.Interaction, orgname: str = "", tags: str = ""
 ) -> None:
@@ -162,7 +162,7 @@ async def myaccount(interaction: discord.Interaction) -> None:
 
 @client.tree.command()
 @app_commands.describe(orgname="The name of the organization",
-                       tags="tags=Agency or tags=Agency,Manufacturer",
+                       tags="eg: tags=Agency or tags=Agency,Manufacturer",
                        satellite_named="eg : Oneweb",
                        satellite_operated_by_country="eg: Brazil"
                        )
@@ -193,7 +193,7 @@ async def orgname(interaction: discord.Interaction, orgname: str = "",
 
 @client.tree.command()
 @app_commands.describe(orgname="The name of the organization",
-                       tags="tags=Agency or tags=Agency,Manufacturer")
+                       tags="eg: tags=Agency or tags=Agency,Manufacturer")
 async def orgnamegps(interaction: discord.Interaction, orgname: str = "",
                      tags: str = "") -> None:
     """Allows a user to get information about space organizations."""
@@ -212,21 +212,45 @@ async def orgnamegps(interaction: discord.Interaction, orgname: str = "",
 async def domain(interaction: discord.Interaction) -> None:
     """Allows a user to get information about domains owned by a space
     organization."""
-    await custom_message(interaction, envs.DOMAIN, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.domain(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.domain(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
 async def subdomain(interaction: discord.Interaction) -> None:
     """Allows a user to get information about sub-domains used by a space
     organization."""
-    await custom_message(interaction, envs.SUBDOMAIN, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.subdomain(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.subdomain(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
 async def ip(interaction: discord.Interaction) -> None:
     """Allows a user to get information about IP addresses used by a space
     organization."""
-    await custom_message(interaction, envs.IP, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.ip(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.ip(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
@@ -263,92 +287,44 @@ async def satellite(interaction: discord.Interaction, name: str = "",
 async def taglaws(interaction: discord.Interaction) -> None:
     """Allows a user to get information of laws and guidelines to which a
     space organization is subject."""
-    await custom_message(interaction, envs.TAGLAWS, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.taglaws(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.taglaws(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
 async def weapons(interaction: discord.Interaction) -> None:
     """Allows a user to get information about space-related weapons."""
-    await custom_message(interaction, envs.WEAPONS, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.weapons(token)
+
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.weapons(token)
+
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
 async def financial(interaction: discord.Interaction) -> None:
     """Allows a user to get information about finance of a space
     organization."""
-    await custom_message(interaction, envs.FINANCIAL, is_private=True)
+    await interaction.response.defer(ephemeral=True)
+    token = space_data.get_token(interaction.user.id)
+    message = space_data.financial(token)
 
+    if message == content.LOG_ERROR:
+        token = space_data.update_token(interaction.user.id)
+        message = space_data.financial(token)
 
-async def _message_conditions(interaction: discord.Interaction,
-                              resp, url: str,
-                              is_data: bool) -> None:
-    """Sends a message depending on the conditions chosen:
-    whether it's in the form of a coded message or the basic message
-    with the url.
-
-    Args:
-        interaction (discord.Interaction): the Discord context
-        resp (aiohttp.web_response): The request response
-        url (str): The requested endpoint URL
-        is_data (bool): message's form
-    """
-    if resp.status_code == 200:
-        if is_data:
-            message = content.data_message(resp.json())
-            await interaction.response.send_message(message, ephemeral=True)
-        else:
-            await interaction.response.send_message(
-                utils.crop(content.basic_message(url)),
-                ephemeral=True)
-    else:
-        await interaction.response.send_message(
-            utils.crop(content.LOG_UNKNOWN),
-            ephemeral=True)
-
-
-async def custom_message(interaction: discord.Interaction, endpoint: str,
-                         is_private: bool = False, is_data: bool = True):
-    """Sends a message in Discord that redirects to the requested URL.
-
-    Args:
-        interaction (discord.Interaction): Discord context
-        endpoint (str): Recon.space endpoint to add in the URL
-        is_private (bool, optional): Checks if the user is logged in,
-            otherwise tells the user to log in. Defaults to False.
-        is_data (bool, optional): Message as a coded or basic URL message.
-    """
-
-    url = f"{envs.API_ROOT}/{endpoint}"
-
-    if is_private:
-        user_id = interaction.user.id  # the id is used to find the user
-        token = utils.get_token(user_id)
-
-        if isinstance(token, str):
-            resp = utils.auth_request(url, token)
-            if resp.status_code == 200:  # access token is still ok
-                await _message_conditions(interaction, resp, url, is_data)
-
-            else:  # token needs to be refreshed
-                resp = utils.auth_request(url,
-                                          utils.update_token(user_id))
-                await _message_conditions(interaction, resp, url, is_data)
-        else:
-            await _send_exception(interaction, token)
-
-    else:  # is public
-        resp = utils.get_request(url)
-        await _message_conditions(interaction, resp, url, is_data)
-
-
-async def _send_exception(interaction: discord.Interaction, status_code: int):
-    if status_code == envs.TOKEN_INIT_ERROR_ID:  # no file created yet
-        await interaction.response.send_message(content.LOG_INIT_ERROR,
-                                                ephemeral=True)
-
-    elif status_code == envs.TOKEN_USER_ERROR_ID:  # no user account yet
-        await interaction.response.send_message(content.LOG_UNKNOWN,
-                                                ephemeral=True)
+    await interaction.followup.send(message, ephemeral=True)
 
 
 if __name__ == "__main__":
