@@ -85,25 +85,9 @@ async def connect(interaction: discord.Interaction,
     """Allows a user to connect to their account;
     an access token and a refresh token are provided."""
 
-    url = f"{envs.API_ROOT}/{envs.TOKEN}/#post-object-form"
-    data = {
-        "email": email,
-        "password": password
-    }
-
-    resp = utils.post_request(url, data)
-    if resp.status_code != 200:
-        await interaction.response.send_message(content.LOG_ERROR,
-                                                ephemeral=True)
-        return
-
-    # save tokens in a file
-    utils.set_token(interaction.user.id, resp.json())
-
-    await interaction.response.send_message(content.LOG_SUCCESS,
-                                            ephemeral=True)
-
-# ---------------------------
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.connect(email, password, id=interaction.user.id)
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()

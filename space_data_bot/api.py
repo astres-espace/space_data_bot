@@ -29,6 +29,7 @@ from space_data_bot import envs, content
 class SpaceDataApi:
     def __init__(self) -> None:
         self._url = envs.API_ROOT
+        self._tokens = {}
 
     def _get(self, url: str, headers: dict = None,
              filters: dict = None) -> requests.Response:
@@ -50,6 +51,36 @@ class SpaceDataApi:
             return requests.get(url, headers=headers)
 
         return requests.get(url)
+
+    def _post(self, url: str, data: dict) -> requests.Response:
+        url += "/#post-object-form"
+
+        return requests.post(url, json=data)
+
+    def get_token(self, id: str = 0, type: str = "access") -> str:
+        pass
+
+    def set_token(self, id: str, data: dict) -> None:
+        self._tokens[id] = data
+
+    def connect(self, email: str, password: str, id: str = 0) -> dict:
+        url = f"{self._url}/{envs.TOKEN}"
+        data = {
+            "email": email,
+            "password": password
+        }
+
+        resp = self._post(url, data)
+
+        if resp.status_code != 200:
+            return content.LOG_ERROR
+
+        data = resp.json()
+
+        if id:
+            self.set_token(id, data)
+
+        return content.LOG_SUCCESS
 
     def orgnamepublic(self, orgname: str = "", tags: str = "") -> str:
         """Allows a user to get information about space organizations
