@@ -120,9 +120,21 @@ class SpaceDataApi:
             str: Results with MD syntax
         """
         url = f"{self._url}/{envs.WEAPONSPUBLIC}"
+        data = self._get_request(url).json()
 
-        resp = self._get_request(url)
-        data = resp.json()
+        if not data:  # no result
+            return content.EMPTY
+
+        return content.data_message(data)
+
+    def records(self) -> str:
+        """Allows a user to get an insight into the database content.
+
+        Returns:
+            str: Results with MD syntax
+        """
+        url = f"{self._url}/{envs.RECORDS}"
+        data = self._get_request(url).json()
 
         if not data:  # no result
             return content.EMPTY

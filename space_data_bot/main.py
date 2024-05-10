@@ -146,10 +146,9 @@ async def weaponspublic(interaction: discord.Interaction) -> None:
 @client.tree.command()
 async def records(interaction: discord.Interaction) -> None:
     """Allows a user to get an insight into the database content."""
-    url = f"{envs.API_ROOT}/{envs.RECORDS}"
-    message = utils.crop(content.data_message(utils.get_request(url).json()))
-
-    await interaction.response.send_message(message, ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
+    message = space_data.records()
+    await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
