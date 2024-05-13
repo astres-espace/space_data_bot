@@ -206,16 +206,16 @@ async def orgnamegps(interaction: discord.Interaction, orgname: str = "",
 
 
 @client.tree.command()
-async def domain(interaction: discord.Interaction) -> None:
+async def domain(interaction: discord.Interaction, id: str = "") -> None:
     """Allows a user to get information about domains owned by a space
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.domain(token)
+    message = space_data.domain(token,id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.domain(token)
+        message = space_data.domain(token,id)
 
     await interaction.followup.send(message, ephemeral=True)
 

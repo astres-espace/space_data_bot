@@ -323,14 +323,15 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def domain(self, token: str) -> str:
-        """Allows a user to get information about domains owned by a space
-        organization.
+    def domain(self, token: str, id:int) -> str:
+        url = f"{self._url}/{envs.DOMAIN}/"+str(id)
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.DOMAIN)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
     def subdomain(self, token: str) -> str:
         """Allows a user to get information about sub-domains used by a space
@@ -375,3 +376,6 @@ class SpaceDataApi:
             str: Results with MD syntax
         """
         return self._pack_get(token, envs.FINANCIAL)
+
+api_instance = SpaceDataApi()
+api_instance.domain('your_token_here', 15)
