@@ -165,11 +165,12 @@ async def myaccount(interaction: discord.Interaction) -> None:
                        )
 async def orgname(interaction: discord.Interaction, orgname: str = "",
                   tags: str = "", satellite_named: str = "",
-                  satellite_operated_by_country: str = "") -> None:
+                  satellite_operated_by_country: str = "", id: str = "") -> None:
     """Allows a user to get information about space organizations."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
     message = space_data.orgname(
+        id,
         token,
         orgname=orgname,
         tags=tags,
@@ -179,6 +180,7 @@ async def orgname(interaction: discord.Interaction, orgname: str = "",
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
         message = space_data.orgname(
+            id,
             token,
             orgname=orgname,
             tags=tags,
@@ -221,31 +223,31 @@ async def domain(interaction: discord.Interaction, id: str = "") -> None:
 
 
 @client.tree.command()
-async def subdomain(interaction: discord.Interaction) -> None:
+async def subdomain(interaction: discord.Interaction, id: str = "") -> None:
     """Allows a user to get information about sub-domains used by a space
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.subdomain(token)
+    message = space_data.subdomain(token,id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.subdomain(token)
+        message = space_data.subdomain(token,id)
 
     await interaction.followup.send(message, ephemeral=True)
 
 
 @client.tree.command()
-async def ip(interaction: discord.Interaction) -> None:
+async def ip(interaction: discord.Interaction, id: str = "") -> None:
     """Allows a user to get information about IP addresses used by a space
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.ip(token)
+    message = space_data.ip(token,id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.ip(token)
+        message = space_data.ip(token,id)
 
     await interaction.followup.send(message, ephemeral=True)
 
@@ -310,16 +312,16 @@ async def weapons(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command()
-async def financial(interaction: discord.Interaction) -> None:
+async def financial(interaction: discord.Interaction, id: str = "") -> None:
     """Allows a user to get information about finance of a space
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.financial(token)
+    message = space_data.financial(token,id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.financial(token)
+        message = space_data.financial(token,id)
 
     await interaction.followup.send(message, ephemeral=True)
 

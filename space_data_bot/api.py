@@ -237,7 +237,7 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def orgname(self, token: str, orgname: str = "",
+    def orgname(self,id : int, token: str, orgname: str = "",
                 tags: str = "", has_satellite_named: str = "",
                 has_satellite_operated_by_country: str = "") -> str:
         """Allows a user to get information about space organizations.
@@ -245,25 +245,31 @@ class SpaceDataApi:
         Returns:
             str: Results with MD syntax
         """
-        url = f"{self._url}/{envs.ORGNAME}"
-        headers = {"Authorization": f"JWT {token}"}
+        if id:
+            url = f"{self._url}/{envs.ORGNAME}/"+str(id)
+            headers = {"Authorization": f"JWT {token}"}
+            resp = self._get(url, headers=headers)
+        else:
 
-        filters = {}
-        if orgname:
-            filters["orgname"] = orgname
+            url = f"{self._url}/{envs.ORGNAME}"
+            headers = {"Authorization": f"JWT {token}"}
 
-        if tags:
-            filters["tags"] = tags
+            filters = {}
+            if orgname:
+                filters["orgname"] = orgname
 
-        if has_satellite_named:
-            filters["hassatellitenamed"] = has_satellite_named
+            if tags:
+                filters["tags"] = tags
 
-        if has_satellite_operated_by_country:
-            filters[
-                "hassatelliteoperatedbycountry"
-            ] = has_satellite_operated_by_country
+            if has_satellite_named:
+                filters["hassatellitenamed"] = has_satellite_named
 
-        resp = self._get(url, headers=headers, filters=filters)
+            if has_satellite_operated_by_country:
+                filters[
+                    "hassatelliteoperatedbycountry"
+                ] = has_satellite_operated_by_country
+
+            resp = self._get(url, headers=headers, filters=filters)
         if resp.status_code == 200:
             return content.data_message(resp.json())
         else:
@@ -333,49 +339,56 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def subdomain(self, token: str) -> str:
-        """Allows a user to get information about sub-domains used by a space
-        organization.
+    def subdomain(self, token: str, id:int) -> str:
+        url = f"{self._url}/{envs.DOMAIN}/"+str(id)
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.SUBDOMAIN)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
-    def ip(self, token: str) -> str:
-        """Allows a user to get information about IP addresses used by a space
-        organization.
+    def ip(self, token: str, id:int) -> str:
+        url = f"{self._url}/{envs.DOMAIN}/"+str(id)
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.IP)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
     def taglaws(self, token: str) -> str:
-        """Allows a user to get information of laws and guidelines to which a
-        space organization is subject.
+        url = f"{self._url}/{envs.TAGLAWS}"
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.TAGLAWS)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
+
 
     def weapons(self, token: str) -> str:
-        """Allows a user to get information about space-related weapons.
+        url = f"{self._url}/{envs.WEAPONS}"
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.WEAPONS)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
-    def financial(self, token: str) -> str:
-        """Allows a user to get information about finance of a space
-        organization.
+    def financial(self, token: str, id: int) -> str:
+        url = f"{self._url}/{envs.FINANCIAL}/"+str(id)
+        headers = {"Authorization": f"JWT {token}"}
+        resp = self._get(url, headers=headers)
 
-        Returns:
-            str: Results with MD syntax
-        """
-        return self._pack_get(token, envs.FINANCIAL)
+        if resp.status_code == 200:
+            return content.data_message(resp.json())
+        else:
+            return content.LOG_ERROR
 
 api_instance = SpaceDataApi()
 api_instance.domain('your_token_here', 15)
