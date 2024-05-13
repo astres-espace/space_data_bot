@@ -167,7 +167,7 @@ def data_message(data: list) -> str:
     """
     if len(message) > envs.MAX_MESSAGE_LENGTH:
         message = message[:envs.MAX_MESSAGE_LENGTH]
-        message += "\n```\n_cropped..._"
+        message += "\n```\n_Cropped due to discord limit ! Check out more on https://recon.space or https://api.recon.space..._"
     else:
         message += "```"
 
