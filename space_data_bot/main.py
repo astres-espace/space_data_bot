@@ -74,9 +74,6 @@ async def help(interaction: discord.Interaction) -> None:
 Endpoints commands accessible for everyone.
 """
 
-# HUGE PROBLEM ! THE TEMPFILE IS ON THE SAME SERVER FOR EVERYONE
-# Ask for a user specific token location when connecting ?
-
 
 @client.tree.command()
 @app_commands.describe(email="your email", password="your password")

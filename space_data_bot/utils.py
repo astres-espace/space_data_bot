@@ -27,7 +27,7 @@ import json
 import requests
 from space_data_bot import envs
 
-
+# deprecated
 def get_token(user_id: str, refresh: bool = False) -> str:
     """Get access token from temporary files, refresh if necessary.
 

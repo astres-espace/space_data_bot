@@ -130,7 +130,7 @@ HELP_PRIVATE_ENDPOINTS = {
 
 def _iter_help(data: dict) -> str:
     message = ""
-    for endpoint, doc in HELP_PUBLIC_ENDPOINTS.items():
+    for endpoint, doc in data.items():
         message += f"`/{endpoint}`: {doc}\n"
     return message
 
