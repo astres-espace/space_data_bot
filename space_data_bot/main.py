@@ -254,7 +254,7 @@ async def ip(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command()
-@app_commands.describe(name="eg: Tiang",
+@app_commands.describe(name="eg: Tian",
                        country_operator="eg: China",
                        orbit="eg: GEO",
                        launch_vehicle="eg: Falcon"
