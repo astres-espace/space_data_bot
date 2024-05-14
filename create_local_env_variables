@@ -1,0 +1,15 @@
+1 - Create local environement variables is needed to use the bot, create them using powershell like this:
+PS>[Environment]::SetEnvironmentVariable('DISCORD_BOT', '<yourvalue>', 'User')
+PS>[Environment]::SetEnvironmentVariable('ASTRES_ID', '<yourvalue>', 'User')
+PS>[Environment]::SetEnvironmentVariable('SPACEDATA_CHANNEL_ID', '<yourvalue>', 'User')
+
+2 - check the correct creation of the local variables using :
+PS>gci env:*
+
+3 - Restart or refresh your python3 interpreter/IDE if you're conducting test. Enjoy !
+
+This will be use by this part of the code that is contained in envs.py:
+# Replace BOT_TOKEN, GUILD_ID and CHANNEL_ID with your own information
+BOT_TOKEN = os.getenv("DISCORD_BOT")
+GUILD_ID = os.getenv("ASTRES_ID")
+CHANNEL_ID = os.getenv("SPACEDATA_CHANNEL_ID")
