@@ -29,12 +29,14 @@ This Discord bot lets you communicate easily and efficiently with **Recon[.]Spac
 
 ##
 This tool is written in **Python 3**.
-Requirements : Discord
+
+Python3 requirements : Discord
+Discord requirements: Create a discord bot using the discord dev portal, assign permission and a channel to the bot. Get the bot token, server id and channel id. (info : https://discordpy.readthedocs.io/en/stable/discord.html)
 
 # INSTALL
 1. Install discord.py by executing the command :
 ```
-pip install discord
+pip3 install discord
 ````
 
 2. Create these environment variables:
@@ -43,8 +45,6 @@ BOT_TOKEN : <your bot's token>.
 ASTRES_ID: <the ID of your Discord server>
 SPACEDATA_CHANNEL_ID: <the ID of the channel in which you want to use the bot>
 ```
-_They will most certainly change to be more global._
-
 You will find help to create them in : create_local_env_variables file.
 
 3. Download the repository and execute the `main.py` file
@@ -58,4 +58,21 @@ To access private data, you need to create an account on the Recon[.]Space websi
 _The table will probably not be the best option, as there will be many arguments for each command._
 |*Command* |Status|Info|
 |-|:-:|-|
+|**help**|public|Get the help about discord usage|
 |**orgnamepublic**|public|Company information|
+|**orgnamegpspublic**|public|Company gps information|
+|**weaponspublic**|public|Space weapons information|
+|**connect**|public|Connect to you recon.space account|
+|**records**|public|Get an insigh of recon.space db|
+|**connect**|public|Tags that can be used for filtering|
+|**orgname**|private|Company information|
+|**orgnamegps**|private|Company gps information|
+|**financial**|private|Company information|
+|**satellite**|private|Company information|
+|**weapons**|private|Company information|
+|**myaccount**|private|Company information|
+|**domain**|private|Company domain information|
+|**ip**|private|Company ip addresses information|
+|**subdomain**|private|Company subdomain information|
+|**taglaws**|private|Company laws information|
+
