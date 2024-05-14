@@ -37,6 +37,8 @@ Requirements : Discord
 pip install discord
 ````
 
+Set your local environement variables using help in the create_local_env_variables file.
+
 2. Create these environment variables:
 ```
 BOT_TOKEN : <your bot's token>.
