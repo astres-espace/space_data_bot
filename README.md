@@ -37,8 +37,6 @@ Requirements : Discord
 pip install discord
 ````
 
-Set your local environement variables using help in the create_local_env_variables file.
-
 2. Create these environment variables:
 ```
 BOT_TOKEN : <your bot's token>.
@@ -46,6 +44,8 @@ ASTRES_ID: <the ID of your Discord server>
 SPACEDATA_CHANNEL_ID: <the ID of the channel in which you want to use the bot>
 ```
 _They will most certainly change to be more global._
+
+You will find help to create them in : create_local_env_variables file.
 
 3. Download the repository and execute the `main.py` file
 
