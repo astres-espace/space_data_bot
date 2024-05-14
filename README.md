@@ -50,7 +50,7 @@ You will find help to create them in : create_local_env_variables file.
 3. Download the repository and execute the `main.py` file
 
 
-# THE COMMANDS
+# Usage - bot commands
 _Use the bot through your discord channel, here are the commands that you can use to fetch Recon[.]Space data:_
 |*Command* |Status|Info|
 |-|:-:|-|
