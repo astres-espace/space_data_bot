@@ -67,10 +67,10 @@ _The table will probably not be the best option, as there will be many arguments
 |**connect**|public|Tags that can be used for filtering|
 |**orgname**|private|Company information|
 |**orgnamegps**|private|Company gps information|
-|**financial**|private|Company information|
-|**satellite**|private|Company information|
-|**weapons**|private|Company information|
-|**myaccount**|private|Company information|
+|**financial**|private|Company financial information|
+|**satellite**|private|Satellite information|
+|**weapons**|private|Weapons information|
+|**myaccount**|private|Your account information|
 |**domain**|private|Company domain information|
 |**ip**|private|Company ip addresses information|
 |**subdomain**|private|Company subdomain information|
