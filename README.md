@@ -31,6 +31,7 @@ This Discord bot lets you communicate easily and efficiently with **Recon[.]Spac
 This tool is written in **Python 3**.
 
 Python3 requirements : Discord
+
 Discord requirements: Create a discord bot using the discord dev portal, assign permission and a channel to the bot. Get the bot token, server id and channel id. (info : https://discordpy.readthedocs.io/en/stable/discord.html)
 
 # INSTALL
