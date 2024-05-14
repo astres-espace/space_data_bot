@@ -49,13 +49,9 @@ You will find help to create them in : create_local_env_variables file.
 
 3. Download the repository and execute the `main.py` file
 
-### USAGE
-Bot commands can be accessed by typing `/` in the text bar.
-There are public and private commands.
-To access private data, you need to create an account on the Recon[.]Space website: https://recon.space/
 
 # THE COMMANDS
-_The table will probably not be the best option, as there will be many arguments for each command._
+_Use the bot through your discord channel, here are the commands that you can use to fetch Recon[.]Space data:_
 |*Command* |Status|Info|
 |-|:-:|-|
 |**help**|public|Get the help about discord usage|
