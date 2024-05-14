@@ -72,3 +72,6 @@ _Use the bot through your discord channel, here are the commands that you can us
 |**subdomain**|private|Company subdomain information|
 |**taglaws**|private|Company laws information|
 
+# Help
+_Find more help reaching the Recon[.]Space discord: https://discord.gg/HGj6xPTAyr_
+
