@@ -223,7 +223,7 @@ async def domain(interaction: discord.Interaction, id: str = "") -> None:
 
 
 @client.tree.command()
-async def subdomain(interaction: discord.Interaction, id: str = "") -> None:
+async def subdomain(interaction: discord.Interaction, id: str) -> None:
     """Allows a user to get information about sub-domains used by a space
     organization."""
     await interaction.response.defer(ephemeral=True)
@@ -238,7 +238,7 @@ async def subdomain(interaction: discord.Interaction, id: str = "") -> None:
 
 
 @client.tree.command()
-async def ip(interaction: discord.Interaction, id: str = "") -> None:
+async def ip(interaction: discord.Interaction, id: str) -> None:
     """Allows a user to get information about IP addresses used by a space
     organization."""
     await interaction.response.defer(ephemeral=True)
@@ -312,7 +312,7 @@ async def weapons(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command()
-async def financial(interaction: discord.Interaction, id: str = "") -> None:
+async def financial(interaction: discord.Interaction, id: str) -> None:
     """Allows a user to get information about finance of a space
     organization."""
     await interaction.response.defer(ephemeral=True)
