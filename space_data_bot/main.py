@@ -165,7 +165,8 @@ async def myaccount(interaction: discord.Interaction) -> None:
                        )
 async def orgname(interaction: discord.Interaction, orgname: str = "",
                   tags: str = "", satellite_named: str = "",
-                  satellite_operated_by_country: str = "", id: str = "") -> None:
+                  satellite_operated_by_country: str = "",
+                  id: str = "") -> None:
     """Allows a user to get information about space organizations."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
@@ -213,11 +214,11 @@ async def domain(interaction: discord.Interaction, id: str = "") -> None:
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.domain(token,id)
+    message = space_data.domain(token, id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.domain(token,id)
+        message = space_data.domain(token, id)
 
     await interaction.followup.send(message, ephemeral=True)
 
@@ -228,11 +229,11 @@ async def subdomain(interaction: discord.Interaction, id: str) -> None:
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.subdomain(token,id)
+    message = space_data.subdomain(token, id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.subdomain(token,id)
+        message = space_data.subdomain(token, id)
 
     await interaction.followup.send(message, ephemeral=True)
 
@@ -243,11 +244,11 @@ async def ip(interaction: discord.Interaction, id: str) -> None:
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.ip(token,id)
+    message = space_data.ip(token, id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.ip(token,id)
+        message = space_data.ip(token, id)
 
     await interaction.followup.send(message, ephemeral=True)
 
@@ -317,11 +318,11 @@ async def financial(interaction: discord.Interaction, id: str) -> None:
     organization."""
     await interaction.response.defer(ephemeral=True)
     token = space_data.get_token(interaction.user.id)
-    message = space_data.financial(token,id)
+    message = space_data.financial(token, id)
 
     if message == content.LOG_ERROR:
         token = space_data.update_token(interaction.user.id)
-        message = space_data.financial(token,id)
+        message = space_data.financial(token, id)
 
     await interaction.followup.send(message, ephemeral=True)
 

@@ -237,7 +237,7 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def orgname(self,id : int, token: str, orgname: str = "",
+    def orgname(self, id: int, token: str, orgname: str = "",
                 tags: str = "", has_satellite_named: str = "",
                 has_satellite_operated_by_country: str = "") -> str:
         """Allows a user to get information about space organizations.
@@ -329,7 +329,7 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def domain(self, token: str, id:int) -> str:
+    def domain(self, token: str, id: int) -> str:
         url = f"{self._url}/{envs.DOMAIN}/"+str(id)
         headers = {"Authorization": f"JWT {token}"}
         resp = self._get(url, headers=headers)
@@ -339,7 +339,7 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def subdomain(self, token: str, id:int) -> str:
+    def subdomain(self, token: str, id: int) -> str:
         url = f"{self._url}/{envs.SUBDOMAIN}/"+str(id)
         headers = {"Authorization": f"JWT {token}"}
         resp = self._get(url, headers=headers)
@@ -349,7 +349,7 @@ class SpaceDataApi:
         else:
             return content.LOG_ERROR
 
-    def ip(self, token: str, id:int) -> str:
+    def ip(self, token: str, id: int) -> str:
         url = f"{self._url}/{envs.IP}/"+str(id)
         headers = {"Authorization": f"JWT {token}"}
         resp = self._get(url, headers=headers)
@@ -368,7 +368,6 @@ class SpaceDataApi:
             return content.data_message(resp.json())
         else:
             return content.LOG_ERROR
-
 
     def weapons(self, token: str) -> str:
         url = f"{self._url}/{envs.WEAPONS}"
@@ -389,6 +388,7 @@ class SpaceDataApi:
             return content.data_message(resp.json())
         else:
             return content.LOG_ERROR
+
 
 api_instance = SpaceDataApi()
 api_instance.domain('your_token_here', 15)
