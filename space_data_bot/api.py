@@ -340,7 +340,7 @@ class SpaceDataApi:
             return content.LOG_ERROR
 
     def subdomain(self, token: str, id:int) -> str:
-        url = f"{self._url}/{envs.DOMAIN}/"+str(id)
+        url = f"{self._url}/{envs.SUBDOMAIN}/"+str(id)
         headers = {"Authorization": f"JWT {token}"}
         resp = self._get(url, headers=headers)
 
@@ -350,7 +350,7 @@ class SpaceDataApi:
             return content.LOG_ERROR
 
     def ip(self, token: str, id:int) -> str:
-        url = f"{self._url}/{envs.DOMAIN}/"+str(id)
+        url = f"{self._url}/{envs.IP}/"+str(id)
         headers = {"Authorization": f"JWT {token}"}
         resp = self._get(url, headers=headers)
 
