@@ -165,7 +165,7 @@ class SpaceDataApi:
             filters["tags"] = tags
 
         if not filters:
-            return content.ORGNAME_DEFAULT
+            return content.ORGNAMEGPS_DEFAULT
 
         resp = self._get(url, filters=filters)
         data = resp.json()["results"]
